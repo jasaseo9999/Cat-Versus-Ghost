@@ -47,8 +47,44 @@ export const CATS = {
     img: A("cat_hunter"), role: "Anti Invisible & Boss", color: "#10b981",
     desc: "Bisa melihat hantu invisible (mengungkap jalurnya & 2 jalur sebelah) dan memberi damage x3 ke Boss. Lebih kuat di malam hari.",
   },
+  samurai: {
+    id: "samurai", name: "Samurai Cat", cost: 125, cooldown: 8, hp: 460, dmg: 50, rate: 1.1, reach: 1.6, img: A("col_samurai"),
+    role: "Tebasan Area", color: "#ef4444", collection: true, unlock: 2,
+    desc: "Tebasan katana mengenai SEMUA hantu dalam jarak 1.5 petak di jalurnya, termasuk hantu terbang.",
+  },
+  wizard: {
+    id: "wizard", name: "Wizard Cat", cost: 175, cooldown: 10, hp: 280, dmg: 65, rate: 3.2, img: A("col_wizard"),
+    role: "Sihir Bulan Global", color: "#8b5cf6", collection: true, unlock: 4,
+    desc: "Menjatuhkan sihir bulan ke hantu terdepan di halaman (jalur mana pun): damage area 3 jalur + membekukan 1 detik.",
+  },
+  detective: {
+    id: "detective", name: "Detective Cat", cost: 125, cooldown: 8, hp: 300, dmg: 16, rate: 1.2, markMult: 1.3, img: A("col_detective"),
+    role: "Pengungkap Kelemahan", color: "#d97706", collection: true, unlock: 6,
+    desc: "Hantu di jalurnya & 2 jalur sebelah menerima +30% damage dan hantu invisible terungkap. Menyorot hantu dengan kaca pembesar.",
+  },
+  vampire: {
+    id: "vampire", name: "Vampire Cat", cost: 150, cooldown: 9, hp: 320, dmg: 30, rate: 1.0, range: 3.2, nightBoost: true, img: A("col_vampire"),
+    role: "Penghisap Energi", color: "#be123c", collection: true, unlock: 8,
+    desc: "Menghisap energi hantu dalam 3 petak untuk memulihkan dirinya & kucing sekitar. Tiap hantu yang ia kalahkan memberi +10 Moonlight.",
+  },
+  robot: {
+    id: "robot", name: "Robot Cat", cost: 225, cooldown: 14, hp: 1400, dmg: 32, rate: 1.6, immune: true, img: A("col_robot"),
+    role: "Tank Roket", color: "#14b8a6", collection: true, unlock: 11,
+    desc: "HP sangat besar dan menembakkan roket. Tidak terpengaruh mood, kebal Possession maupun jeritan Kuntilanak.",
+  },
 };
 export const CAT_ORDER = ["solar", "claw", "bubble", "laser", "ninja", "hunter"];
+export const COLLECTION_ORDER = ["samurai", "wizard", "detective", "vampire", "robot"];
+export const ALL_CATS = [...CAT_ORDER, ...COLLECTION_ORDER];
+export const DECK_MAX = 8;
+
+export const UPG_MAX = 3;
+export const UPG_COST = [1, 2, 3];
+export const UPG_DMG = 0.15;
+export const UPG_HP = 0.12;
+export const UPG_PROD = 0.12;
+export const ENDLESS_STAR_WAVES = 5;
+export const ENDLESS_STAR_MAX = 10;
 
 export const GHOSTS = {
   basic: { id: "basic", name: "Basic Ghost", hp: 150, speed: 0.3, dmg: 20, biteRate: 1, points: 10, size: 102, img: A("ghost_basic"),
@@ -68,27 +104,30 @@ export const GHOSTS = {
   mini: { id: "mini", name: "Hantu Kecil", hp: 60, speed: 0.45, dmg: 10, biteRate: 1, points: 5, size: 64, img: A("ghost_basic"),
     desc: "Hantu kecil yang dipanggil oleh Ghost Storm." },
   boss: { id: "boss", name: "King Phantom Catnapper", hp: 5200, speed: 0.07, dmg: 70, biteRate: 1, points: 1000, size: 280, img: A("boss_king"),
-    desc: "Raja hantu yang ingin mengubah semua kucing menjadi roh. Skill: Ghost Storm, Possession, Dark Moon." },
+    desc: "Raja hantu yang ingin mengubah semua kucing menjadi roh. Skill: Ghost Storm, Possession, Dark Moon (dan Grave Rise di Kuburan Tua)." },
+  pocong: { id: "pocong", name: "Pocong", hp: 280, speed: 1.5, hop: true, dmg: 22, biteRate: 1, points: 25, size: 104, grave: true, img: A("ghost_pocong"),
+    desc: "Hantu khas kuburan yang melompat-lompat maju dengan cepat. Kain kafannya tebal (HP tinggi)." },
+  tuyul: { id: "tuyul", name: "Tuyul", hp: 100, speed: 0.62, dmg: 10, biteRate: 0.8, points: 20, size: 78, grave: true, img: A("ghost_tuyul"),
+    desc: "Si kecil pencuri! Setiap gigitannya mencuri 10 Moonlight, dan jika masuk rumah ia membawa kabur 50 Moonlight." },
+  kuntilanak: { id: "kuntilanak", name: "Kuntilanak", hp: 240, speed: 0.3, dmg: 20, biteRate: 1, points: 30, size: 112, flying: true, flip: true, abilityEvery: 8, grave: true, img: A("ghost_kuntilanak"),
+    desc: "Melayang dan menjerit setiap 8 detik: kucing di jalurnya ketakutan dan jadi mengantuk (mood turun drastis)." },
+  nisan: { id: "nisan", name: "Hantu Nisan", hp: 650, speed: 0.15, dmg: 30, biteRate: 1.2, points: 35, size: 104, possessed: true, grave: true, img: A("ghost_nisan"),
+    desc: "Batu nisan kerasukan yang sangat keras. Saat hancur, 2 hantu kecil keluar darinya." },
 };
-export const GHOST_ORDER = ["basic", "speed", "shield", "doll", "tv", "lamp", "invisible", "boss"];
+export const GHOST_ORDER = ["basic", "speed", "shield", "doll", "tv", "lamp", "invisible", "pocong", "tuyul", "kuntilanak", "nisan", "boss"];
 
 export const BOSS_SKILLS = {
   storm: { name: "GHOST STORM!", desc: "Memanggil banyak hantu kecil" },
   possession: { name: "POSSESSION!", desc: "Mengambil alih kucing sementara" },
   darkmoon: { name: "DARK MOON!", desc: "Produksi Moonlight berhenti" },
+  graverise: { name: "GRAVE RISE!", desc: "Membangkitkan Hantu Nisan dari tanah" },
 };
 
-export const COLLECTION = [
-  { id: "samurai", name: "Samurai Cat", img: A("col_samurai"), desc: "Tebasan katana yang membelah roh." },
-  { id: "wizard", name: "Wizard Cat", img: A("col_wizard"), desc: "Sihir bulan penyegel hantu." },
-  { id: "vampire", name: "Vampire Cat", img: A("col_vampire"), desc: "Mencuri energi dari hantu." },
-  { id: "robot", name: "Robot Cat", img: A("col_robot"), desc: "Mesin anti-roh bertenaga bulan." },
-  { id: "detective", name: "Detective Cat", img: A("col_detective"), desc: "Menemukan kelemahan setiap hantu." },
-];
+export const COLLECTION = COLLECTION_ORDER.map((id) => CATS[id]);
 
 export const LOCATIONS = [
-  { id: 1, name: "Rumah Pinggir Kota", img: A("bg_yard_night"), open: true },
-  { id: 2, name: "Kuburan Tua", img: A("loc_graveyard"), open: false },
+  { id: 1, name: "Rumah Pinggir Kota", img: A("bg_yard_night"), bg: { night: A("bg_yard_night"), day: A("bg_yard_day") }, open: true },
+  { id: 2, name: "Kuburan Tua", img: A("bg_grave_night"), bg: { night: A("bg_grave_night"), day: A("bg_grave_day") }, open: true, fog: true },
   { id: 3, name: "Rumah Angker", img: A("loc_haunted_house"), open: false },
   { id: 4, name: "Kastil Hantu", img: A("loc_castle"), open: false },
   { id: 5, name: "Dunia Roh", img: A("loc_spirit_world"), open: false },
@@ -127,6 +166,39 @@ export const LEVELS = [
     tip: "King Phantom Catnapper datang! Hati-hati Ghost Storm, Possession (beri snack untuk membebaskan kucing) dan Dark Moon.",
     waves: [w({ basic: 5, speed: 2 }), w({ basic: 4, shield: 2, invisible: 2, doll: 1 }), w({ basic: 5, shield: 3, tv: 2, lamp: 2, speed: 2 }, { night: true }), w({ basic: 6, shield: 3, invisible: 2, doll: 2 }, { night: true, big: true, boss: true })],
   },
-];
+  {
+    num: 7, loc: 2, name: "Gerbang Kuburan", cards: CAT_ORDER, startMoon: 200, newGhost: "pocong",
+    tip: "Selamat datang di Kuburan Tua yang berkabut! Pocong melompat cepat — perlambat dengan Bubble Cat dan tahan dengan kucing ber-HP tinggi.",
+    waves: [w({ basic: 4 }), w({ basic: 3, pocong: 2, speed: 1 }), w({ basic: 4, pocong: 3, shield: 2 }, { night: true }), w({ basic: 6, pocong: 4, shield: 2, speed: 2 }, { night: true, big: true })],
+  },
+  {
+    num: 8, loc: 2, name: "Pencuri Cilik", cards: CAT_ORDER, startMoon: 200, newGhost: "tuyul",
+    tip: "Tuyul mencuri Moonlight setiap kali menggigit! Kalahkan secepat mungkin sebelum tabunganmu habis.",
+    waves: [w({ basic: 3, tuyul: 2 }), w({ basic: 3, tuyul: 3, pocong: 1 }), w({ basic: 2, tuyul: 4, pocong: 2, shield: 2 }, { night: true }), w({ basic: 5, tuyul: 5, pocong: 3, doll: 2 }, { night: true, big: true })],
+  },
+  {
+    num: 9, loc: 2, name: "Jeritan Malam", cards: CAT_ORDER, startMoon: 225, newGhost: "kuntilanak",
+    tip: "Jeritan Kuntilanak membuat kucing ketakutan dan mengantuk. Siapkan Snack untuk mengembalikan mood mereka!",
+    waves: [w({ basic: 4, pocong: 1 }), w({ basic: 3, kuntilanak: 2, tuyul: 2 }), w({ basic: 2, kuntilanak: 3, pocong: 2, lamp: 2 }, { night: true }), w({ basic: 3, kuntilanak: 4, pocong: 3, tuyul: 3, shield: 3 }, { night: true, big: true })],
+  },
+  {
+    num: 10, loc: 2, name: "Nisan Bergerak", cards: CAT_ORDER, startMoon: 250, newGhost: "nisan",
+    tip: "Hantu Nisan sangat keras dan melepaskan 2 hantu kecil saat hancur. Laser & Ninja Cat sangat berguna di sini.",
+    waves: [w({ basic: 4, nisan: 1 }), w({ basic: 2, nisan: 2, pocong: 2 }), w({ nisan: 2, kuntilanak: 2, tuyul: 2, shield: 2 }, { night: true }), w({ basic: 4, nisan: 4, pocong: 3, kuntilanak: 2, tv: 2 }, { night: true, big: true })],
+  },
+  {
+    num: 11, loc: 2, name: "Kabut Tebal", cards: CAT_ORDER, startMoon: 250, newGhost: "invisible",
+    tip: "Kabut menyembunyikan banyak Invisible Ghost. Ghost Hunter atau Detective Cat wajib dibawa!",
+    waves: [w({ basic: 4, invisible: 2 }), w({ invisible: 3, pocong: 2, tuyul: 2 }), w({ invisible: 3, kuntilanak: 2, nisan: 2, lamp: 2 }, { night: true }), w({ basic: 4, invisible: 4, pocong: 3, nisan: 2, kuntilanak: 3, tuyul: 3 }, { night: true, big: true })],
+  },
+  {
+    num: 12, loc: 2, name: "Raja Kembali", cards: CAT_ORDER, startMoon: 325, newGhost: "boss", boss: true, bossHp: 1.5,
+    bossSkills: ["storm", "graverise", "possession", "darkmoon"],
+    tip: "King Phantom Catnapper kembali lebih kuat! Skill baru GRAVE RISE membangkitkan Hantu Nisan. Bawa pasukan terbaikmu.",
+    waves: [w({ basic: 5, pocong: 2 }), w({ tuyul: 3, kuntilanak: 2, shield: 2, basic: 2 }), w({ nisan: 2, invisible: 2, pocong: 3, lamp: 2 }, { night: true }), w({ basic: 6, pocong: 3, kuntilanak: 2, invisible: 2 }, { night: true, big: true, boss: true })],
+  },
+].map((l) => ({ loc: 1, ...l }));
 
 export const getLevel = (num) => LEVELS.find((l) => l.num === Number(num));
+export const levelLabel = (l) => `${l.loc}-${l.num - (l.loc - 1) * 6}`;
+export const getLocation = (id) => LOCATIONS.find((l) => l.id === id);

@@ -90,6 +90,13 @@ const SFX = {
   bossDie: () => { noise({ dur: 0.8, vol: 0.25, freq: 400, q: 0.4 }); arp([392, 523, 659, 784, 1047], 0.12, "triangle", 0.16); },
   win: () => arp([523, 659, 784, 1047, 784, 1047, 1319], 0.12, "triangle", 0.16),
   lose: () => arp([392, 349, 311, 262, 196], 0.2, "sawtooth", 0.07),
+  katana: () => { noise({ dur: 0.14, vol: 0.2, freq: 5000, q: 0.7 }); tone({ type: "triangle", f0: 2200, f1: 900, dur: 0.16, vol: 0.06 }); },
+  magic: () => { arp([988, 1319, 1568], 0.05, "sine", 0.08); noise({ dur: 0.3, vol: 0.08, freq: 3000, q: 0.5, delay: 0.1 }); },
+  drain: () => tone({ type: "sine", f0: 300, f1: 180, dur: 0.22, vol: 0.08 }),
+  glass: () => tone({ type: "sine", f0: 1760, f1: 2100, dur: 0.1, vol: 0.05 }),
+  rocket: () => { noise({ dur: 0.25, vol: 0.14, freq: 700, q: 0.4 }); tone({ type: "sawtooth", f0: 300, f1: 900, dur: 0.18, vol: 0.04 }); },
+  scream: () => { tone({ type: "sawtooth", f0: 1200, f1: 1800, dur: 0.5, vol: 0.05 }); tone({ type: "sine", f0: 1250, f1: 1700, dur: 0.55, vol: 0.06, delay: 0.03 }); },
+  steal: () => arp([880, 660], 0.06, "square", 0.05),
 };
 
 export function play(name) {
@@ -109,4 +116,143 @@ export const isMuted = () => muted;
 export function setMuted(v) {
   muted = v;
   saveProgress({ muted: v });
+  if (v) music.stop();
 }
+
+/* ===== Procedural background music ===== */
+let musicGain = null;
+let musicOn = !loadProgress().musicMuted;
+const mus = { timer: null, step: 0, next: 0, mood: "calm" };
+const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
+
+function mnote(n, t, dur, { type = "sine", vol = 0.05, attack = 0.02, release = 0.25, cutoff } = {}) {
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(hz(n), t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + attack);
+  g.gain.setValueAtTime(vol, t + Math.max(attack, dur - release));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  let node = o;
+  if (cutoff) {
+    const f = ctx.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.value = cutoff;
+    o.connect(f);
+    node = f;
+  }
+  node.connect(g).connect(musicGain);
+  o.start(t);
+  o.stop(t + dur + 0.05);
+}
+
+function mhit(t, dur, vol, freq, type) {
+  const len = Math.floor(ctx.sampleRate * dur);
+  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const f = ctx.createBiquadFilter();
+  f.type = type;
+  f.frequency.value = freq;
+  const g = ctx.createGain();
+  g.gain.value = vol;
+  src.connect(f).connect(g).connect(musicGain);
+  src.start(t);
+}
+
+function kick(t) {
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.frequency.setValueAtTime(120, t);
+  o.frequency.exponentialRampToValueAtTime(40, t + 0.16);
+  g.gain.setValueAtTime(0.22, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+  o.connect(g).connect(musicGain);
+  o.start(t);
+  o.stop(t + 0.22);
+}
+
+const CALM = {
+  bpm: 74,
+  chords: [[57, 60, 64], [53, 57, 60], [48, 55, 64], [55, 59, 62]],
+  masks: [[1, 0, 1, 1, 0, 1, 1, 0], [1, 1, 0, 1, 0, 0, 1, 1]],
+  play(step, t, sd) {
+    const bar = Math.floor(step / 8) % this.chords.length;
+    const c = this.chords[bar];
+    const i = step % 8;
+    if (i === 0) {
+      c.forEach((n) => mnote(n, t, sd * 8, { type: "triangle", vol: 0.018, attack: 0.9, release: 1 }));
+      mnote(c[0] - 12, t, sd * 8, { vol: 0.05, attack: 0.3, release: 0.8 });
+    }
+    const mel = [c[0] + 12, c[2] + 12, c[1] + 12, c[2] + 12, c[0] + 24, c[2] + 12, c[1] + 12, c[2]];
+    if (this.masks[Math.floor(step / 8) % 2][i]) mnote(mel[i], t, sd * 2.2, { type: "sine", vol: 0.035, attack: 0.005, release: sd * 2 });
+  },
+};
+
+const BOSS = {
+  bpm: 138,
+  chords: [[50, 53, 57], [46, 50, 53], [43, 46, 50], [45, 49, 52]],
+  play(step, t, sd) {
+    const bar = Math.floor(step / 8) % this.chords.length;
+    const c = this.chords[bar];
+    const i = step % 8;
+    mnote(c[0] - 24 + (i % 2 ? 12 : 0), t, sd * 0.9, { type: "sawtooth", vol: 0.05, attack: 0.005, release: 0.08, cutoff: 700 });
+    if (i % 2 === 0) kick(t);
+    if (i === 2 || i === 6) mhit(t, 0.12, 0.09, 1800, "bandpass");
+    mhit(t, 0.04, 0.025, 7000, "highpass");
+    if (i === 0 || i === 3 || i === 6) c.forEach((n) => mnote(n + 12, t, sd * 0.8, { type: "square", vol: 0.012, attack: 0.005, release: 0.1, cutoff: 2200 }));
+    if (i === 0) c.forEach((n) => mnote(n, t, sd * 8, { type: "sawtooth", vol: 0.008, attack: 0.4, release: 0.5, cutoff: 1200 }));
+  },
+};
+
+function tick() {
+  const cfg = mus.mood === "boss" ? BOSS : CALM;
+  const sd = 60 / cfg.bpm / 2;
+  while (mus.next < ctx.currentTime + 0.15) {
+    cfg.play(mus.step, mus.next, sd);
+    mus.next += sd;
+    mus.step += 1;
+  }
+}
+
+export const music = {
+  start() {
+    const c = getCtx();
+    if (!c || mus.timer || !musicOn || muted) return;
+    if (!musicGain) {
+      musicGain = c.createGain();
+      musicGain.connect(master);
+    }
+    musicGain.gain.cancelScheduledValues(c.currentTime);
+    musicGain.gain.setValueAtTime(0.0001, c.currentTime);
+    musicGain.gain.exponentialRampToValueAtTime(0.9, c.currentTime + 1.5);
+    mus.next = c.currentTime + 0.1;
+    mus.step = 0;
+    mus.timer = setInterval(tick, 40);
+  },
+  stop() {
+    if (!mus.timer) return;
+    clearInterval(mus.timer);
+    mus.timer = null;
+    const now = ctx.currentTime;
+    musicGain.gain.cancelScheduledValues(now);
+    musicGain.gain.setValueAtTime(Math.max(0.0001, musicGain.gain.value), now);
+    musicGain.gain.linearRampToValueAtTime(0.0001, now + 0.4);
+  },
+  setMood(m) {
+    if (mus.mood === m) return;
+    mus.mood = m;
+    mus.step = 0;
+  },
+  getMood: () => mus.mood,
+  isPlaying: () => !!mus.timer,
+  isOn: () => musicOn,
+  setOn(v) {
+    musicOn = v;
+    saveProgress({ musicMuted: !v });
+    if (!v) music.stop();
+  },
+};

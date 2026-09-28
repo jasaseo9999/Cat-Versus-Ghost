@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Moon, Swords, Trophy, Volume2, VolumeX } from "lucide-react";
-import { A } from "../game/data";
-import { loadProgress } from "../game/storage";
+import { BookOpen, Moon, Swords, Trophy, Volume2, VolumeX, Hammer, Star } from "lucide-react";
+import { A, LEVELS } from "../game/data";
+import { loadProgress, starBalance } from "../game/storage";
 import { play, unlockAudio, isMuted, setMuted } from "../game/audio";
 import { GameButton } from "../components/game/GameButton";
 
@@ -23,9 +23,13 @@ export default function MainMenu() {
   const items = [
     { id: "btn-start-story", label: "Mode Cerita", icon: Swords, variant: "green", path: "/levels" },
     { id: "btn-start-endless", label: "Endless Night", icon: Moon, variant: "purple", path: "/endless" },
-    { id: "btn-open-almanac", label: "Buku Kucing", icon: BookOpen, variant: "blue", path: "/almanac" },
-    { id: "btn-open-leaderboard", label: "Papan Skor", icon: Trophy, variant: "amber", path: "/leaderboard" },
   ];
+  const minor = [
+    { id: "btn-open-upgrades", label: "Bengkel", icon: Hammer, variant: "amber", path: "/upgrades" },
+    { id: "btn-open-almanac", label: "Buku", icon: BookOpen, variant: "blue", path: "/almanac" },
+    { id: "btn-open-leaderboard", label: "Skor", icon: Trophy, variant: "red", path: "/leaderboard" },
+  ];
+  const stars = starBalance(p);
   return (
     <div className="menu-bg grain" style={{ backgroundImage: `url(${A("bg_menu")})` }} data-testid="main-menu">
       {ORBS.map((o, i) => (
@@ -49,6 +53,20 @@ export default function MainMenu() {
               <it.icon size={24} /> {it.label}
             </GameButton>
           ))}
+          <div className="grid grid-cols-3 gap-2">
+            {minor.map((it, i) => (
+              <GameButton
+                key={it.id}
+                variant={it.variant}
+                className="reveal-up flex-col !gap-1 !px-2 !py-2 text-xs"
+                style={{ animationDelay: `${0.34 + i * 0.06}s` }}
+                onClick={() => go(it.path)}
+                data-testid={it.id}
+              >
+                <it.icon size={20} /> {it.label}
+              </GameButton>
+            ))}
+          </div>
         </div>
         <div className="reveal-up flex flex-wrap items-center gap-3" style={{ animationDelay: "0.55s" }}>
           <button
@@ -64,7 +82,10 @@ export default function MainMenu() {
             Rekor Endless: <b className="font-display">{p.bestEndless}</b>
           </span>
           <span className="rounded-full border border-emerald-400/40 bg-slate-950/90 px-4 py-2 text-sm text-emerald-200 backdrop-blur-md">
-            Level terbuka: <b className="font-display">{Math.min(p.unlocked, 6)}/6</b>
+            Level terbuka: <b className="font-display">{Math.min(p.unlocked, LEVELS.length)}/{LEVELS.length}</b>
+          </span>
+          <span className="flex items-center gap-1 rounded-full border border-amber-400/40 bg-slate-950/90 px-4 py-2 text-sm text-amber-200 backdrop-blur-md" data-testid="menu-star-balance">
+            <Star size={14} fill="#fcd34d" className="text-amber-300" /> <b className="font-display">{stars.available}</b> bintang
           </span>
         </div>
       </div>

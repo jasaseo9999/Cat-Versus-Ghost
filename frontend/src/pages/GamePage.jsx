@@ -1,21 +1,34 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { A, BG_LAYOUT, getLevel } from "../game/data";
-import { createGame, step, placeCat, removeCat, feedCat, collectOrb, cardState } from "../game/engine";
-import { play, unlockAudio, isMuted, setMuted } from "../game/audio";
-import { loadProgress, completeLevel, recordEndless } from "../game/storage";
+import { BG_LAYOUT, CATS, CAT_ORDER, COLLECTION_ORDER, DECK_MAX, getLevel, getLocation } from "../game/data";
+import { createGame, step, placeCat, removeCat, feedCat, collectOrb, cardState, getBoss } from "../game/engine";
+import { play, unlockAudio, isMuted, setMuted, music } from "../game/audio";
+import { loadProgress, saveProgress, completeLevel, recordEndless, isCatUnlocked } from "../game/storage";
 import { Stage } from "../components/game/Stage";
 import { Board } from "../components/game/Board";
 import { Hud, Banner } from "../components/game/Hud";
 import { CardDeck } from "../components/game/CardDeck";
 import { IntroModal, PauseModal, WinModal, LoseModal, EndlessOverModal } from "../components/game/GameModals";
 
-const Background = ({ phase, dark }) => (
+const Background = ({ loc, phase, dark }) => (
   <>
-    <img src={A("bg_yard_night")} alt="" className="bg-img" style={{ ...BG_LAYOUT, filter: dark ? "brightness(0.55) saturate(0.6) hue-rotate(20deg)" : "none" }} />
-    <img src={A("bg_yard_day")} alt="" className="bg-img" style={{ ...BG_LAYOUT, opacity: phase === "day" && !dark ? 1 : 0 }} />
+    <img src={loc.bg.night} alt="" className="bg-img" style={{ ...BG_LAYOUT, filter: dark ? "brightness(0.55) saturate(0.6) hue-rotate(20deg)" : "none" }} data-testid="game-bg" data-location={loc.id} />
+    <img src={loc.bg.day} alt="" className="bg-img" style={{ ...BG_LAYOUT, opacity: phase === "day" && !dark ? 1 : 0 }} />
   </>
 );
+
+const Fog = () => (
+  <>
+    <div className="fog-layer slow" style={{ top: 150, height: 250 }} />
+    <div className="fog-layer" style={{ top: 380, height: 320 }} data-testid="fog-overlay" />
+  </>
+);
+
+const defaultLoadout = (available) => {
+  const saved = (loadProgress().loadout || []).filter((id) => available.includes(id));
+  const rest = available.filter((id) => !saved.includes(id));
+  return [...saved, ...rest].slice(0, DECK_MAX);
+};
 
 export default function GamePage({ mode }) {
   const { levelId } = useParams();
@@ -29,9 +42,18 @@ export default function GamePage({ mode }) {
   const [speed, setSpeed] = useState(1);
   const [muted, setMutedState] = useState(isMuted());
   const [result, setResult] = useState(null);
+  const [musicOn, setMusicOn] = useState(music.isOn());
+  const [loadout, setLoadout] = useState([]);
+  const loadoutRef = useRef([]);
+  const loc = getLocation(level?.loc || 1);
+
+  const available = useMemo(() => {
+    const p = loadProgress();
+    return [...(level ? level.cards : CAT_ORDER), ...COLLECTION_ORDER.filter((id) => isCatUnlocked(id, p))];
+  }, [level]);
 
   const reset = useCallback((startNow) => {
-    sRef.current = createGame({ mode, level });
+    sRef.current = createGame({ mode, level, cards: loadoutRef.current, upgrades: loadProgress().upgrades });
     setTool(null);
     setResult(null);
     setPhase(startNow ? "playing" : "intro");
@@ -43,13 +65,18 @@ export default function GamePage({ mode }) {
       navigate("/levels", { replace: true });
       return;
     }
+    const lo = defaultLoadout(available);
+    loadoutRef.current = lo;
+    setLoadout(lo);
     reset(false);
   }, [mode, levelId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const finish = useCallback((s) => {
     if (s.status === "won") {
+      const before = loadProgress();
       completeLevel(level.num, s.lives);
-      setResult({ type: "won", stars: s.lives, kills: s.kills });
+      const newCat = COLLECTION_ORDER.find((id) => CATS[id].unlock === level.num && !isCatUnlocked(id, before));
+      setResult({ type: "won", stars: s.lives, kills: s.kills, newCat });
     } else if (mode === "endless") {
       const p = recordEndless(s.score, s.endlessWave);
       setResult({ type: "endless", score: s.score, wave: s.endlessWave, kills: s.kills, best: p.bestEndless });
@@ -68,6 +95,7 @@ export default function GamePage({ mode }) {
       last = now;
       for (let i = 0; i < speed; i++) step(s, dt);
       s.sfx.splice(0).forEach(play);
+      music.setMood(getBoss(s) ? "boss" : "calm");
       force();
       if (s.status !== "playing") {
         finish(s);
@@ -78,6 +106,13 @@ export default function GamePage({ mode }) {
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [phase, speed, finish]);
+
+  useEffect(() => {
+    if (phase === "playing" && musicOn && !muted) music.start();
+    else music.stop();
+  }, [phase, musicOn, muted]);
+
+  useEffect(() => () => music.stop(), []);
 
   useEffect(() => {
     const onVis = () => document.hidden && setPhase((p) => (p === "playing" ? "paused" : p));
@@ -127,12 +162,30 @@ export default function GamePage({ mode }) {
 
   useEffect(() => {
     if (!window.location.search.includes("debug=1")) return undefined;
-    window.__cvg = { state: () => sRef.current, step };
+    window.__cvg = { state: () => sRef.current, step, music };
     return () => { delete window.__cvg; };
   }, []);
 
   const toggleMute = () => { setMuted(!muted); setMutedState(!muted); };
-  const start = () => { unlockAudio(); play("click"); setPhase("playing"); };
+  const toggleMusic = () => { music.setOn(!musicOn); setMusicOn(!musicOn); };
+  const toggleLoadout = (id) => {
+    play("click");
+    setLoadout((cur) => {
+      const next = cur.includes(id) ? cur.filter((x) => x !== id) : cur.length < DECK_MAX ? [...cur, id] : cur;
+      loadoutRef.current = next;
+      return next;
+    });
+  };
+  const start = () => {
+    unlockAudio();
+    play("click");
+    const ordered = available.filter((id) => loadout.includes(id));
+    loadoutRef.current = ordered;
+    sRef.current.cards = ordered;
+    saveProgress({ loadout: ordered });
+    music.setMood("calm");
+    setPhase("playing");
+  };
 
   useEffect(() => {
     const onKey = (e) => {
@@ -167,8 +220,9 @@ export default function GamePage({ mode }) {
         data-status={s.status}
         onContextMenu={(e) => { e.preventDefault(); setTool(null); }}
       >
-        <Background phase={s.phase} dark={dark} />
+        <Background loc={loc} phase={s.phase} dark={dark} />
         <Board s={s} tool={tool} hover={hover} onTile={onTile} onHover={onHover} onOrb={onOrb} />
+        {loc.fog && <Fog />}
         {dark && <div className="darkmoon-overlay" style={{ zIndex: 110 }} data-testid="dark-moon-overlay" />}
         {s.t < s.flashUntil && <div className="house-flash" />}
         <Hud
@@ -182,11 +236,22 @@ export default function GamePage({ mode }) {
         <CardDeck s={s} tool={tool} onSelectCat={selectCat} onTool={selectTool} />
         <Banner banner={s.banner} />
 
-        {phase === "intro" && <IntroModal level={level} onStart={start} onBack={() => navigate(level ? "/levels" : "/")} />}
+        {phase === "intro" && (
+          <IntroModal
+            level={level}
+            available={available}
+            selected={loadout}
+            onToggle={toggleLoadout}
+            onStart={start}
+            onBack={() => navigate(level ? "/levels" : "/")}
+          />
+        )}
         {phase === "paused" && (
           <PauseModal
             muted={muted}
             onMute={toggleMute}
+            musicOn={musicOn}
+            onMusic={toggleMusic}
             onResume={() => setPhase("playing")}
             onRestart={() => reset(true)}
             onQuit={() => navigate(level ? "/levels" : "/")}
@@ -197,6 +262,7 @@ export default function GamePage({ mode }) {
             level={level}
             stars={result.stars}
             kills={result.kills}
+            newCat={result.newCat}
             onNext={() => navigate(`/play/${level.num + 1}`)}
             onRetry={() => reset(true)}
             onLevels={() => navigate("/levels")}

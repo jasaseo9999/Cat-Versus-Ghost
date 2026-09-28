@@ -1,4 +1,6 @@
-import { CATS, GHOSTS, ROWS, COLS, EVO_DMG, EVO_HP, EVO_XP, EVO_NAMES, SNACK_COST, START_LIVES, BOSS_SKILLS, CAT_ORDER } from "./data";
+import { CATS, GHOSTS, ROWS, COLS, EVO_DMG, EVO_HP, EVO_XP, EVO_NAMES, SNACK_COST, START_LIVES, BOSS_SKILLS, CAT_ORDER, UPG_DMG, UPG_HP, UPG_PROD } from "./data";
+
+const DEFAULT_BOSS_SKILLS = ["storm", "possession", "darkmoon"];
 
 const END_X = 9.35;
 const SPAWN_X = 9.85;
@@ -31,7 +33,7 @@ function buildQueue(waves, startDelay) {
   return q;
 }
 
-export function createGame({ mode, level }) {
+export function createGame({ mode, level, cards, upgrades = {} }) {
   const endless = mode === "endless";
   const queue = endless ? [] : buildQueue(level.waves, level.num === 1 ? 24 : 20);
   const s = {
@@ -39,7 +41,8 @@ export function createGame({ mode, level }) {
     moonlight: endless ? 250 : level.startMoon, lives: START_LIVES,
     cats: [], ghosts: [], projectiles: [], beams: [], orbs: [], fx: [],
     grid: Array.from({ length: ROWS }, () => Array(COLS).fill(null)),
-    cardReady: {}, cards: endless ? CAT_ORDER : level.cards,
+    cardReady: {}, cards: cards?.length ? cards : endless ? CAT_ORDER : level.cards, upg: upgrades,
+    bossHpMult: level?.bossHp || 1, bossSkills: level?.bossSkills || DEFAULT_BOSS_SKILLS,
     nextSky: 5, phase: endless ? "day" : (level.waves[0].night ? "night" : "day"),
     darkMoonUntil: 0, shakeUntil: 0, flashUntil: 0, banner: null,
     queue, qi: 0, nextSpawnAt: queue[0]?.delay ?? 0, totalWaves: endless ? 0 : level.waves.length,
@@ -61,6 +64,7 @@ const addFx = (s, kind, x, y, extra = {}) => s.fx.push({ id: nid(), kind, x, y, 
 const banner = (s, text, kind = "info", dur = 2.2) => { s.banner = { id: nid(), text, kind, until: s.t + dur }; };
 
 export const moodOf = (c, t) => {
+  if (CATS[c.type].immune) return "normal";
   if (t < c.possessedUntil) return "possessed";
   if (t < c.angryUntil) return "angry";
   if (c.fullness >= 60) return "happy";
@@ -74,7 +78,7 @@ const aliveGhosts = (s) => s.ghosts.filter((g) => !g.dead).length;
 function spawnGhost(s, type, row, x = SPAWN_X + rnd(0, 0.3)) {
   const G = GHOSTS[type];
   const dayMult = s.phase === "day" && type !== "boss" ? 0.8 : 1;
-  const hp = Math.round(G.hp * dayMult * (type === "boss" ? 1 + (s.hpScale - 1) * 0.5 : s.hpScale));
+  const hp = Math.round(G.hp * dayMult * (type === "boss" ? (1 + (s.hpScale - 1) * 0.5) * s.bossHpMult : s.hpScale));
   const g = {
     id: nid(), type, row, rows: type === "boss" ? [1, 2, 3] : [row], x,
     hp, maxHp: hp, shield: G.shield ? Math.round(G.shield * s.hpScale) : 0, maxShield: G.shield ? Math.round(G.shield * s.hpScale) : 0,
@@ -106,6 +110,11 @@ function planEndlessWave(s) {
   if (n >= 4) pool.push("doll", "lamp");
   if (n >= 5) pool.push("invisible");
   if (n >= 6) pool.push("tv", "shield");
+  if (n >= 7) pool.push("pocong");
+  if (n >= 8) pool.push("tuyul");
+  if (n >= 9) pool.push("kuntilanak");
+  if (n >= 10) pool.push("nisan", "pocong");
+  if (n >= 16) s.bossSkills = ["storm", "graverise", "possession", "darkmoon"];
   const count = 3 + Math.round(n * 1.7);
   const list = Array.from({ length: count }, () => pick(pool));
   if (boss) list.unshift("boss");
@@ -152,10 +161,13 @@ function updateSpawner(s) {
 }
 
 function updateReveal(s) {
-  const hunterRows = new Set(s.cats.filter((c) => c.type === "hunter" && s.t >= c.possessedUntil).map((c) => c.row));
+  const active = s.cats.filter((c) => s.t >= c.possessedUntil);
+  const seeRows = new Set(active.filter((c) => c.type === "hunter" || c.type === "detective").map((c) => c.row));
+  const markRows = new Set(active.filter((c) => c.type === "detective").map((c) => c.row));
+  const near = (set, g) => g.rows.some((r) => set.has(r) || set.has(r - 1) || set.has(r + 1));
   for (const g of s.ghosts) {
-    if (!GHOSTS[g.type].invisible) continue;
-    g.revealed = [g.row - 1, g.row, g.row + 1].some((r) => hunterRows.has(r));
+    g.marked = markRows.size > 0 && near(markRows, g);
+    if (GHOSTS[g.type].invisible) g.revealed = near(seeRows, g);
   }
 }
 
@@ -172,7 +184,7 @@ function gainXp(s, c, n) {
   c.xp += n;
   if (c.evo < 2 && c.xp >= EVO_XP[c.evo]) {
     c.evo += 1;
-    c.maxHp = Math.round(CATS[c.type].hp * EVO_HP[c.evo]);
+    c.maxHp = Math.round(CATS[c.type].hp * EVO_HP[c.evo] * (1 + UPG_HP * (s.upg[c.type] || 0)));
     c.hp = c.maxHp;
     addFx(s, "evolve", c.col + 0.5, c.row, { text: `${EVO_NAMES[c.evo]}!`, dur: 1.4 });
     sfx(s, "evolve");
@@ -186,6 +198,11 @@ function killGhost(s, g, src) {
   addFx(s, "poof", g.x, g.row, { big: g.type === "boss", dur: g.type === "boss" ? 1.6 : 0.7 });
   sfx(s, g.type === "boss" ? "bossDie" : "poof");
   gainXp(s, src, g.type === "boss" ? 12 : 1);
+  if (src?.type === "vampire" && src.hp > 0) {
+    s.moonlight += 10;
+    addFx(s, "orbText", g.x, g.row - 0.3, { text: "+10", dur: 0.9 });
+  }
+  if (g.type === "nisan") [-0.1, 0.25].forEach((dx) => spawnGhost(s, "mini", g.row, g.x + dx));
   if (g.type === "boss") {
     s.bossId = null;
     s.darkMoonUntil = 0;
@@ -197,6 +214,7 @@ function killGhost(s, g, src) {
 function hurtGhost(s, g, dmg, src) {
   if (g.dead) return;
   if (g.type === "boss" && src?.type === "hunter") dmg *= CATS.hunter.bossMult;
+  if (g.marked) dmg *= CATS.detective.markMult;
   if (g.shield > 0) {
     g.shield -= dmg;
     dmg *= 0.25;
@@ -244,12 +262,49 @@ function fireCat(s, c, C, mult) {
     sfx(s, "shuriken");
     return true;
   }
+  if (c.type === "samurai") {
+    const list = targetsInRow(s, c.row, cx, false).filter((x) => x.x - cx <= C.reach);
+    if (!list.length) return false;
+    list.forEach((g) => hurtGhost(s, g, dmg, c));
+    addFx(s, "katana", cx + 0.75, c.row, { dur: 0.35 });
+    sfx(s, "katana");
+    return true;
+  }
+  if (c.type === "wizard") {
+    const target = s.ghosts.filter((g) => !g.dead && g.x < END_X && canTarget(g, false)).sort((a, b) => a.x - b.x)[0];
+    if (!target) return false;
+    const tr = target.type === "boss" ? 2 : target.row;
+    s.ghosts.forEach((g) => {
+      if (g.dead || Math.abs(g.x - target.x) > 0.9 || !g.rows.some((r) => Math.abs(r - tr) <= 1) || !canTarget(g, false)) return;
+      hurtGhost(s, g, dmg, c);
+      if (g.type !== "boss") g.stunUntil = Math.max(g.stunUntil, s.t + 1);
+    });
+    addFx(s, "moonspell", target.x, tr, { dur: 0.75 });
+    sfx(s, "magic");
+    return true;
+  }
+  if (c.type === "vampire" || c.type === "detective") {
+    const vamp = c.type === "vampire";
+    const g = targetsInRow(s, c.row, cx, false).find((x) => !vamp || x.x - cx <= C.range);
+    if (!g) return false;
+    hurtGhost(s, g, dmg, c);
+    s.beams.push({ id: nid(), kind: vamp ? "drain" : "glass", row: c.row, x0: cx + 0.3, x1: g.x, until: s.t + 0.3 });
+    if (vamp) {
+      s.cats.forEach((o) => {
+        if (o.hp <= 0 || Math.abs(o.row - c.row) + Math.abs(o.col - c.col) > 1) return;
+        o.hp = Math.min(o.maxHp, o.hp + dmg * (o === c ? 0.5 : 0.25));
+      });
+    }
+    sfx(s, vamp ? "drain" : "glass");
+    return true;
+  }
   if (!targetsInRow(s, c.row, cx, hunter).length) return false;
+  const kind = hunter ? "spirit" : c.type === "robot" ? "rocket" : "bubble";
   s.projectiles.push({
-    id: nid(), kind: hunter ? "spirit" : "bubble", row: c.row, y0: c.row, xs: cx + 0.3, x: cx + 0.3,
-    v: hunter ? 6 : 4.8, dmg, pierce: 1, hits: [], hunter, slow: C.slow || 0, src: c,
+    id: nid(), kind, row: c.row, y0: c.row, xs: cx + 0.3, x: cx + 0.3,
+    v: kind === "bubble" ? 4.8 : kind === "rocket" ? 5.5 : 6, dmg, pierce: 1, hits: [], hunter, slow: C.slow || 0, src: c,
   });
-  sfx(s, hunter ? "spirit" : "bubble");
+  sfx(s, kind);
   return true;
 }
 
@@ -258,7 +313,8 @@ function updateCats(s, dt) {
   const dark = s.t < s.darkMoonUntil;
   for (const c of s.cats) {
     const C = CATS[c.type];
-    c.fullness = Math.max(0, c.fullness - dt * 0.5);
+    const up = s.upg[c.type] || 0;
+    if (!C.immune) c.fullness = Math.max(0, c.fullness - dt * 0.5);
     if (s.t < c.possessedUntil || s.t < c.stunUntil) continue;
     const m = moodOf(c, s.t);
     if (c.type === "solar") {
@@ -266,7 +322,7 @@ function updateCats(s, dt) {
       if (s.t >= c.prodAt) {
         spawnOrb(s, "solar", c.col + 0.85 + rnd(-0.05, 0.15), c.row - 0.45, 25 + c.evo * 10, c.row - 0.2);
         const base = night ? C.produceNight : C.produceDay;
-        c.prodAt = s.t + base * rateMult(m) * (m === "happy" ? 0.85 : 1);
+        c.prodAt = s.t + (base * rateMult(m) * (m === "happy" ? 0.85 : 1)) / (1 + UPG_PROD * up);
         c.attackUntil = s.t + 0.6;
         sfx(s, "produce");
         gainXp(s, c, 1);
@@ -274,7 +330,7 @@ function updateCats(s, dt) {
       continue;
     }
     if (s.t < c.cd) continue;
-    const mult = (m === "happy" ? 1.2 : 1) * EVO_DMG[c.evo] * (night && C.nightBoost ? 1.25 : 1);
+    const mult = (m === "happy" ? 1.2 : 1) * EVO_DMG[c.evo] * (night && C.nightBoost ? 1.25 : 1) * (1 + UPG_DMG * up);
     if (fireCat(s, c, C, mult)) {
       c.cd = s.t + C.rate * rateMult(m);
       c.attackUntil = s.t + 0.28;
@@ -321,7 +377,7 @@ function findBlocker(s, g) {
 
 function bossThink(s, g) {
   if (g.x > END_X - 0.3 || s.t < g.nextSkill) return;
-  const order = ["storm", "possession", "darkmoon"];
+  const order = s.bossSkills;
   const sk = order[g.skillIdx % order.length];
   g.skillIdx += 1;
   g.castUntil = s.t + 1.2;
@@ -330,11 +386,13 @@ function bossThink(s, g) {
     const n = enraged ? 6 : 4;
     for (let i = 0; i < n; i++) spawnGhost(s, "mini", Math.floor(Math.random() * ROWS), g.x - 0.4 + rnd(0, 0.8));
   } else if (sk === "possession") {
-    const pool = shuffle(s.cats.filter((c) => c.hp > 0 && c.type !== "solar" && s.t >= c.possessedUntil));
+    const pool = shuffle(s.cats.filter((c) => c.hp > 0 && c.type !== "solar" && !CATS[c.type].immune && s.t >= c.possessedUntil));
     pool.slice(0, enraged ? 3 : 2).forEach((c) => {
       c.possessedUntil = s.t + 7;
       addFx(s, "possess", c.col + 0.5, c.row, { dur: 1 });
     });
+  } else if (sk === "graverise") {
+    shuffle([0, 1, 2, 3, 4]).slice(0, enraged ? 3 : 2).forEach((r) => spawnGhost(s, "nisan", r, g.x - 0.6 + rnd(-0.2, 0.2)));
   } else {
     s.darkMoonUntil = s.t + 9;
   }
@@ -375,6 +433,17 @@ function updateGhosts(s, dt) {
       }
       if (healed) sfx(s, "heal");
     }
+    if (g.type === "kuntilanak" && t >= g.nextAbility && g.x < END_X) {
+      g.nextAbility = t + G.abilityEvery;
+      const hit = s.cats.filter((c) => c.hp > 0 && c.row === g.row && !CATS[c.type].immune && g.x - (c.col + 0.5) > -0.5 && g.x - (c.col + 0.5) < 4);
+      hit.forEach((c) => {
+        c.fullness = Math.max(0, c.fullness - 45);
+        c.angryUntil = 0;
+        addFx(s, "text", c.col + 0.5, c.row - 0.3, { text: "Hiii!", cls: "cyan", dur: 0.9 });
+      });
+      s.beams.push({ id: nid(), kind: "scream", row: g.row, x0: Math.max(0, g.x - 4), x1: g.x - 0.3, until: t + 0.6 });
+      sfx(s, "scream");
+    }
     if (g.type === "boss") bossThink(s, g);
     if (t < g.stunUntil) continue;
     const blocker = findBlocker(s, g);
@@ -394,11 +463,21 @@ function updateGhosts(s, dt) {
         blocker.angryUntil = t + 4;
         g.biteAt = t + G.biteRate;
         sfx(s, "bite");
+        if (g.type === "tuyul" && s.moonlight > 0) {
+          const st = Math.min(10, s.moonlight);
+          s.moonlight -= st;
+          addFx(s, "text", g.x, g.row - 0.4, { text: `-${st}`, cls: "red", dur: 0.8 });
+          sfx(s, "steal");
+        }
         if (blocker.hp <= 0) killCat(s, blocker);
       }
     } else {
       g.eating = false;
       let sp = g.speed;
+      if (G.hop) {
+        g.hopping = (t - g.born + g.bob) % 1.4 < 0.4;
+        if (!g.hopping) sp = 0;
+      }
       if (t < g.slowUntil) sp *= 0.5;
       if (g.enraged) sp *= 1.9;
       g.x -= sp * dt;
@@ -406,6 +485,7 @@ function updateGhosts(s, dt) {
     if (g.x < -0.3) {
       g.dead = true;
       s.lives = g.type === "boss" ? 0 : s.lives - 1;
+      if (g.type === "tuyul") s.moonlight = Math.max(0, s.moonlight - 50);
       s.shakeUntil = t + 0.45;
       s.flashUntil = t + 0.5;
       sfx(s, "hurt");
@@ -486,8 +566,9 @@ export function placeCat(s, type, row, col) {
   }
   s.moonlight -= C.cost;
   s.cardReady[type] = s.t + C.cooldown;
+  const hp = Math.round(C.hp * (1 + UPG_HP * (s.upg[type] || 0)));
   const c = {
-    id: nid(), type, row, col, hp: C.hp, maxHp: C.hp, cd: s.t + 0.5, prodAt: s.t + 6,
+    id: nid(), type, row, col, hp, maxHp: hp, cd: s.t + 0.5, prodAt: s.t + 6,
     fullness: 75, angryUntil: 0, possessedUntil: 0, stunUntil: 0, hitUntil: 0, attackUntil: 0,
     xp: 0, evo: 0, placedAt: s.t,
   };

@@ -6,6 +6,7 @@ import LevelSelect from "@/pages/LevelSelect";
 import GamePage from "@/pages/GamePage";
 import Almanac from "@/pages/Almanac";
 import Leaderboard from "@/pages/Leaderboard";
+import Upgrades from "@/pages/Upgrades";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/endless" element={<GamePage mode="endless" />} />
           <Route path="/almanac" element={<Almanac />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/upgrades" element={<Upgrades />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

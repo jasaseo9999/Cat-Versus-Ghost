@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, Smile, Flame, Moon, Sun, Sparkles, Heart } from "lucide-react";
+import { ArrowLeft, Lock, Smile, Flame, Moon, Sun, Sparkles, Heart, Hammer } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { A, CATS, CAT_ORDER, GHOSTS, GHOST_ORDER, COLLECTION, EVO_NAMES, BOSS_SKILLS, SNACK_COST } from "../game/data";
+import { A, CATS, CAT_ORDER, GHOSTS, GHOST_ORDER, COLLECTION, EVO_NAMES, BOSS_SKILLS, SNACK_COST, getLevel, levelLabel, UPG_DMG, UPG_HP } from "../game/data";
+import { loadProgress, isCatUnlocked } from "../game/storage";
 
 const Stat = ({ label, value }) => (
   <div className="rounded-lg bg-black/30 px-2 py-1 text-center">
@@ -10,10 +11,11 @@ const Stat = ({ label, value }) => (
   </div>
 );
 
-const Entry = ({ testid, img, title, subtitle, desc, stats, accent }) => (
-  <div className="panel flex flex-col gap-3 p-4" style={{ borderColor: accent }} data-testid={testid}>
+const Entry = ({ testid, img, title, subtitle, desc, stats, accent, flip, locked, lockText }) => (
+  <div className={`panel relative flex flex-col gap-3 p-4 ${locked ? "opacity-80" : ""}`} style={{ borderColor: locked ? "#475569" : accent }} data-testid={testid} data-locked={!!locked}>
+    {locked && <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-slate-950 px-2 py-0.5 text-[10px] font-bold text-amber-200"><Lock size={10} /> {lockText}</span>}
     <div className="flex items-center gap-3">
-      <img src={img} alt={title} className="card-sprite-bob h-20 w-20 object-contain" />
+      <img src={img} alt={title} className={`card-sprite-bob h-20 w-20 object-contain ${locked ? "grayscale" : ""}`} style={{ scale: flip ? "-1 1" : undefined }} />
       <div>
         <div className="font-display text-lg leading-tight">{title}</div>
         <div className="text-xs font-bold uppercase tracking-wider" style={{ color: accent }}>{subtitle}</div>
@@ -33,6 +35,7 @@ const Mechanic = ({ icon: Icon, color, title, children }) => (
 
 export default function Almanac() {
   const navigate = useNavigate();
+  const progress = loadProgress();
   return (
     <div className="scroll-page bg-[#0d0a26] px-4 py-5 sm:px-10" data-testid="almanac-page">
       <div className="mx-auto max-w-6xl">
@@ -62,22 +65,22 @@ export default function Almanac() {
             {GHOST_ORDER.map((id) => {
               const G = GHOSTS[id];
               return (
-                <Entry key={id} testid={`almanac-ghost-${id}`} img={G.img} title={G.name} subtitle={id === "boss" ? "Boss" : G.possessed ? "Possessed Object" : "Hantu"} desc={G.desc}
-                  accent={id === "boss" ? "#a855f7" : "#fb7185"} stats={[["HP", G.hp], ["Cepat", G.speed], ["Poin", G.points]]} />
+                <Entry key={id} testid={`almanac-ghost-${id}`} img={G.img} title={G.name} subtitle={id === "boss" ? "Boss" : G.grave ? "Khas Kuburan" : G.possessed ? "Possessed Object" : "Hantu"} desc={G.desc}
+                  flip={G.flip} accent={id === "boss" ? "#a855f7" : G.grave ? "#34d399" : "#fb7185"} stats={[["HP", G.hp], ["Cepat", G.hop ? +(G.speed * 0.4 / 1.4).toFixed(2) : G.speed], ["Poin", G.points]]} />
               );
             })}
           </TabsContent>
           <TabsContent value="collection">
-            <p className="mb-4 text-sm text-slate-400">Kucing unik yang bisa dikumpulkan. Fitur Cat Collection segera hadir!</p>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-              {COLLECTION.map((c) => (
-                <div key={c.id} className="panel relative flex flex-col items-center gap-2 p-4 text-center" data-testid={`collection-${c.id}`}>
-                  <img src={c.img} alt={c.name} className="h-28 w-28 object-contain opacity-80 grayscale" />
-                  <div className="font-display">{c.name}</div>
-                  <p className="text-xs text-slate-400">{c.desc}</p>
-                  <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-slate-950 px-2 py-0.5 text-[10px] font-bold text-amber-200"><Lock size={10} /> Segera</span>
-                </div>
-              ))}
+            <p className="mb-4 text-sm text-slate-400">Kucing unik yang terbuka dengan menyelesaikan level cerita. Pilih mereka di layar Pasukan sebelum bertarung!</p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {COLLECTION.map((C) => {
+                const locked = !isCatUnlocked(C.id, progress);
+                return (
+                  <Entry key={C.id} testid={`collection-${C.id}`} img={C.img} title={C.name} subtitle={C.role} desc={C.desc} accent={C.color}
+                    locked={locked} lockText={`Selesaikan ${levelLabel(getLevel(C.unlock))}`}
+                    stats={[["Harga", C.cost], ["HP", C.hp], ["Damage", C.dmg]]} />
+                );
+              })}
             </div>
           </TabsContent>
           <TabsContent value="rules" className="grid gap-4 md:grid-cols-2">
@@ -95,6 +98,10 @@ export default function Almanac() {
               <p>Kucing yang mengusir hantu mendapat pengalaman dan berevolusi:</p>
               <p className="font-display text-base">{EVO_NAMES.join("  →  ")}</p>
               <p>Setiap tingkat menambah damage & HP, dan memulihkan HP penuh.</p>
+            </Mechanic>
+            <Mechanic icon={Hammer} color="#f59e0b" title="Upgrade Permanen">
+              <p>Bintang dari level cerita (maks 3 per level) + 1 bintang tiap 5 gelombang terbaik Endless Night.</p>
+              <p>Pakai di <b className="text-amber-300">Bengkel Kucing</b>: tiap level upgrade +{UPG_DMG * 100}% damage & +{UPG_HP * 100}% HP (Solar Cat: produksi lebih cepat). Maks level 3.</p>
             </Mechanic>
             <Mechanic icon={Flame} color="#a855f7" title="Skill Raja Hantu">
               {Object.values(BOSS_SKILLS).map((b) => <p key={b.name}><b className="text-fuchsia-300">{b.name}</b> {b.desc}.</p>)}

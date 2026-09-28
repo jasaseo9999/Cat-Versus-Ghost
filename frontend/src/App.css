@@ -289,3 +289,42 @@
 .card-sprite-bob { animation: ghostFloat 3s ease-in-out infinite; }
 
 .scroll-page { position: relative; min-height: 100dvh; overflow-y: auto; }
+
+/* ===== v2: collection cats, graveyard ===== */
+.ghost-unit.is-hop .sprite { animation: ghostHop 0.4s ease-out; }
+@keyframes ghostHop { 0% { transform: translateY(0) scale(1.05, 0.95); } 50% { transform: translateY(-36px) scale(0.94, 1.06); } 100% { transform: translateY(0) scale(1.06, 0.94); } }
+.mark-icon { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); color: #fbbf24; filter: drop-shadow(0 0 5px #f59e0b); animation: bubbleBob 1.2s ease-in-out infinite; }
+.beam-drain { height: 8px; background: linear-gradient(90deg, #be123c, #fb7185 60%, rgba(251, 113, 133, 0.3)); box-shadow: 0 0 14px #e11d48; animation: beamFade 0.3s ease-out forwards; }
+.beam-glass { height: 30px; background: linear-gradient(90deg, rgba(253, 230, 138, 0.75), rgba(253, 230, 138, 0.08)); clip-path: polygon(0 42%, 100% 0, 100% 100%, 0 58%); animation: beamFade 0.3s ease-out forwards; }
+.beam-scream { height: 70px; border-radius: 50%; background: repeating-linear-gradient(90deg, transparent 0 12px, rgba(226, 232, 240, 0.55) 12px 16px); animation: beamFade 0.6s ease-out forwards; }
+.proj-rocket { color: #fb923c; transform: rotate(45deg); filter: drop-shadow(0 0 8px #f97316); }
+.fx-katana { width: 130px; height: 120px; }
+.fx-katana i { position: absolute; inset: 0; border-radius: 50%; border-right: 7px solid #fff; filter: drop-shadow(0 0 8px #ef4444); animation: slash 0.35s ease-out forwards; }
+.fx-katana i:nth-child(2) { inset: 14px; border-right-color: #fecaca; animation-delay: 0.05s; }
+.fx-moonspell { width: 170px; height: 170px; border-radius: 50%; background: radial-gradient(circle, rgba(253, 230, 138, 0.9), rgba(139, 92, 246, 0.5) 45%, transparent 70%); box-shadow: 0 0 40px #8b5cf6; animation: poof 0.75s ease-out forwards; }
+.fx-moondrop { animation: moonDrop 0.5s ease-in forwards; filter: drop-shadow(0 0 12px #fde68a); }
+@keyframes moonDrop { 0% { transform: translate(-50%, -260%) rotate(-40deg); opacity: 0; } 60% { opacity: 1; } 100% { transform: translate(-50%, -50%) rotate(0); opacity: 0; } }
+
+.fog-layer { position: absolute; left: 0; width: 100%; overflow: hidden; pointer-events: none; z-index: 96; }
+.fog-layer::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 200%;
+    background-image:
+        radial-gradient(ellipse 22% 45% at 20% 55%, rgba(215, 225, 255, 0.34), transparent 70%),
+        radial-gradient(ellipse 18% 35% at 55% 35%, rgba(200, 212, 245, 0.26), transparent 70%),
+        radial-gradient(ellipse 25% 42% at 85% 65%, rgba(222, 228, 255, 0.3), transparent 70%);
+    background-size: 50% 100%;
+    background-repeat: repeat-x;
+    filter: blur(6px);
+    animation: fogDrift 70s linear infinite;
+}
+.fog-layer.slow::before { animation-duration: 110s; animation-direction: reverse; opacity: 0.8; }
+@keyframes fogDrift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.loadout-chip { position: relative; display: flex; flex-direction: column; align-items: center; width: 70px; padding: 4px 2px 2px; border-radius: 12px; border: 3px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.05); cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, opacity 0.15s ease; }
+.loadout-chip:hover { transform: translateY(-2px); }
+.loadout-chip.on { border-color: #fbbf24; background: rgba(251, 191, 36, 0.14); box-shadow: 0 0 14px rgba(251, 191, 36, 0.35); }
+.loadout-chip.off { opacity: 0.5; filter: grayscale(0.6); }
+.loadout-chip img { width: 46px; height: 42px; object-fit: contain; pointer-events: none; }
+.loadout-chip span { font-size: 10px; font-weight: 700; line-height: 1.1; text-align: center; }
+.upg-pip { width: 14px; height: 14px; border-radius: 4px; transform: rotate(45deg); border: 2px solid rgba(251, 191, 36, 0.6); }
+.upg-pip.on { background: linear-gradient(135deg, #fde047, #f59e0b); box-shadow: 0 0 8px rgba(253, 224, 71, 0.8); }

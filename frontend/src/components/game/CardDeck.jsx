@@ -8,6 +8,11 @@ const CARD_BG = {
   laser: "linear-gradient(180deg,#e879f9,#7e22ce)",
   ninja: "linear-gradient(180deg,#818cf8,#312e81)",
   hunter: "linear-gradient(180deg,#5eead4,#047857)",
+  samurai: "linear-gradient(180deg,#f87171,#7f1d1d)",
+  wizard: "linear-gradient(180deg,#a78bfa,#4c1d95)",
+  detective: "linear-gradient(180deg,#fdba74,#9a3412)",
+  vampire: "linear-gradient(180deg,#fb7185,#4c0519)",
+  robot: "linear-gradient(180deg,#67e8f9,#155e75)",
 };
 
 const CatCard = ({ type, index, s, selected, onSelect }) => {

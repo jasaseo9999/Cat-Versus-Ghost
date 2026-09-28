@@ -1,4 +1,4 @@
-import { Heart, PawPrint, Zap, Star } from "lucide-react";
+import { Heart, PawPrint, Zap, Star, Search, Rocket, Moon } from "lucide-react";
 import { BOARD, CATS, GHOSTS, A } from "../../game/data";
 import { moodOf } from "../../game/engine";
 
@@ -55,7 +55,7 @@ export const GhostUnit = ({ g, t }) => {
     "unit ghost-unit",
     t < g.hitUntil && "is-hit", t < g.slowUntil && "is-slowed", g.eating && "is-eating", t < g.leapUntil && "is-leap",
     g.enraged && "is-enraged", t < g.stunUntil && "is-stunned", t < (g.castUntil || 0) && "is-casting",
-    t - g.born < 0.8 && "enter", invisible && (g.revealed ? "revealed-ghost" : "hidden-ghost"),
+    t - g.born < 0.8 && "enter", invisible && (g.revealed ? "revealed-ghost" : "hidden-ghost"), g.hopping && "is-hop",
   ].filter(Boolean).join(" ");
   const row = g.type === "boss" ? 3 : g.row;
   return (
@@ -66,7 +66,8 @@ export const GhostUnit = ({ g, t }) => {
       style={{ left: px(g.x), top: feetY(row) + (g.type === "boss" ? 6 : 0), width: size, height: size, zIndex: 25 + row * 10 }}
     >
       {!invisible && <div className="unit-shadow" />}
-      <img src={img} alt={G.name} className="sprite" style={{ width: size, height: size }} draggable={false} />
+      <img src={img} alt={G.name} className="sprite" style={{ width: size, height: size, scale: G.flip ? "-1 1" : undefined }} draggable={false} />
+      {g.marked && (!invisible || g.revealed) && <Search size={18} className="mark-icon" strokeWidth={3} data-testid={`ghost-marked-${g.id}`} />}
       {g.type !== "boss" && (g.hp < g.maxHp || g.shield < g.maxShield) && (!invisible || g.revealed) && (
         <HpBar pct={g.hp / g.maxHp} kind="ghost" shieldPct={g.maxShield ? g.shield / g.maxShield : 0} />
       )}
@@ -89,6 +90,7 @@ export const Projectile = ({ p }) => {
       {p.kind === "bubble" && <div className="proj-bubble" />}
       {p.kind === "shuriken" && <Shuriken />}
       {p.kind === "spirit" && <div className="proj-spirit"><PawPrint size={18} /></div>}
+      {p.kind === "rocket" && <Rocket size={28} className="proj-rocket" fill="#fdba74" />}
     </div>
   );
 };
@@ -127,6 +129,15 @@ export const Fx = ({ f }) => {
       return <div className={`fx fx-poof ${f.big ? "big" : ""}`} style={{ ...style, top: f.big ? centerY(2) : style.top }} />;
     case "slash":
       return <div className="fx fx-slash" style={style}><i /><i /><i /></div>;
+    case "katana":
+      return <div className="fx fx-katana" style={style}><i /><i /></div>;
+    case "moonspell":
+      return (
+        <>
+          <div className="fx fx-moonspell" style={style} />
+          <div className="fx fx-moondrop" style={style}><Moon size={44} fill="#fde68a" color="#fbbf24" /></div>
+        </>
+      );
     case "heal":
       return <div className="fx fx-heal" style={style}>+</div>;
     case "heart":
