@@ -25,7 +25,13 @@ Buatkan game "Cat Versus Ghost" (Tower Defense / Lane Defense / Strategy Casual)
 - Almanac (cats, ghosts, collection preview, rules), pause, 2x speed, mute, keyboard shortcuts, rotate-device hint
 - Debug hook `?debug=1` → `window.__cvg`
 
+## Iteration 2 (2026-06)
+- Collection cats playable: Samurai (unlock after 1-2), Wizard (1-4), Detective (1-6), Vampire (2-2), Robot (2-5) with unique abilities; pre-battle loadout picker (max 8 cards, remembered)
+- Location 2 "Kuburan Tua": 6 levels (2-1..2-6), foggy graveyard backgrounds (day/night) + animated fog; new ghosts Pocong (hop), Tuyul (steals Moonlight), Kuntilanak (scream lowers mood), Hantu Nisan (splits into minis); level 2-6 boss 1.5x HP + GRAVE RISE skill
+- Procedural night music (Web Audio): calm A-minor music box, switches to tense boss track while boss is on field; music toggle in pause menu
+- Permanent upgrades "Bengkel Kucing" (/upgrades): stars from levels + endless (1 per 5 best waves, max 10) buy up to 3 levels per cat (+15% dmg, +12% HP / Solar +12% production), reset refunds
+- HUD re-layout for 8-card deck
+
 ## Backlog
-- P1: Locations 2–5 (Kuburan Tua, Rumah Angker, Kastil Hantu, Dunia Roh) → 30 levels total with new backgrounds
-- P1: Cat Collection unlocks (Samurai, Wizard, Vampire, Robot, Detective) as playable cats
-- P2: Persistent evolution/upgrade between levels, background music, drag-and-drop placement, tutorial overlay
+- P1: Locations 3–5 (Rumah Angker, Kastil Hantu, Dunia Roh) → 30 levels total
+- P2: Drag-and-drop placement, tutorial overlay, achievements, daily challenge

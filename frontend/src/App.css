@@ -324,6 +324,7 @@
 .loadout-chip:hover { transform: translateY(-2px); }
 .loadout-chip.on { border-color: #fbbf24; background: rgba(251, 191, 36, 0.14); box-shadow: 0 0 14px rgba(251, 191, 36, 0.35); }
 .loadout-chip.off { opacity: 0.5; filter: grayscale(0.6); }
+.loadout-chip.full { opacity: 0.3; cursor: not-allowed; transform: none; }
 .loadout-chip img { width: 46px; height: 42px; object-fit: contain; pointer-events: none; }
 .loadout-chip span { font-size: 10px; font-weight: 700; line-height: 1.1; text-align: center; }
 .upg-pip { width: 14px; height: 14px; border-radius: 4px; transform: rotate(45deg); border: 2px solid rgba(251, 191, 36, 0.6); }

@@ -33,7 +33,7 @@ const Loadout = ({ available, selected, onToggle }) => (
       {available.map((id) => {
         const on = selected.includes(id);
         return (
-          <button type="button" key={id} className={`loadout-chip ${on ? "on" : "off"}`} onClick={() => onToggle(id)} data-testid={`loadout-chip-${id}`} data-selected={on}>
+          <button type="button" key={id} className={`loadout-chip ${on ? "on" : "off"} ${!on && selected.length >= DECK_MAX ? "full" : ""}`} onClick={() => onToggle(id)} data-testid={`loadout-chip-${id}`} data-selected={on}>
             <img src={CATS[id].img} alt={CATS[id].name} />
             <span>{CATS[id].name.replace(" Cat", "")}</span>
             <span className="text-amber-300">{CATS[id].cost}</span>

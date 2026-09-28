@@ -1,0 +1,25 @@
+{
+  "summary": "Iteration 2 frontend-only verification of Cat Versus Ghost graveyard/collection/upgrades/music features. All 12 requested items verified via playwright + window.__cvg debug hook. Collection cats correctly locked in almanac & upgrades with fresh localStorage. LevelSelect renders location-card-1 (unlocked), location-card-2 (data-locked=true) and location-cards 3-5 as 'Segera Hadir'. Level 12 loads with data-location=2 + fog-overlay, intro reads 'Kuburan Tua · Level 2-6', boss maxHp confirmed 7800 (5200 * 1.5), music mood flips to 'boss' when boss present. Upgrades page: star-balance data-available correctly computed from stars + endless (bestWave 25 -> 5 endless stars, level stars 6 -> total 11 available; after 2 claw upgrades cost 1+2=3 → available 8 as expected). Reset requires 2 clicks and refunds all. Locked collection cats show no upgrade-btn (lock message shown instead). Upgrades apply in battle: claw with upgrades:{claw:2} placed → cat.maxHp=521 == round(420*1.24). Music: isPlaying=true while playing, false after pause modal, btn-toggle-music toggles Musik: Nyala/Mati and persists musicMuted=true in localStorage. Loadout picker: initial 8/8 selection, deselect brings to 2/5, 9th click rejected (data-selected stays false). Loadout persisted to localStorage.loadout and next battle only renders card-cat-{id} for saved ids. Level 2 win flow shows modal-level-win with win-new-cat 'Samurai' and btn-next-level; unlocked bumped from 2→3. HUD layout: at 1920x800 card-deck top-left (with hud-moonlight-counter, tool-snack, tool-shovel inside), hud-day-night-indicator + hud-lives bottom-left, hud-wave-progress bottom-right, speed/mute/pause top-right — no overlaps. Regression: level 1 basic intro/deck/tiles/HUD present.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_scores_api.py"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "storage.js: DEFAULT.unlocked=1 combined with completeLevel(num, s.lives) => stars saved = remaining lives (2 in test after 1 hit). Matches spec.",
+    "GamePage.jsx defaultLoadout uses `.slice(0, DECK_MAX)` — DECK_MAX=8 so if user unlocks all 11 cats, only first 8 in available are pre-selected. Correct.",
+    "audio.js music.setOn persists via saveProgress; hud-mute-button correctly stops music through setMuted(v)→music.stop().",
+    "engine.js placeCat applies UPG_HP: 420 * (1 + 0.12*2) = 520.8 → round=521 ✔.",
+    "Boss maxHp 5200*1.5=7800 verified for level 12; bossSkills override to ['storm','graverise','possession','darkmoon'] present in data.js.",
+    "Loadout picker chip toggle correctly caps at DECK_MAX; visual affordance for disabled state could be added (currently unselected chip in 8/8 state still looks clickable) — minor UX nit only, not a bug."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (skipped per request)", "frontend": "100% (all 12 scenarios pass)"},
+  "seed_data_creation": "Only localStorage cvg_progress_v1 mutated; no backend writes.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All iter-2 items pass. Backend unchanged from iter-1 (9/9 pytest previously green). Key debug pattern: set localStorage BEFORE navigate, then /play/N?debug=1, force s.moonlight=99999 & s.lives=999 inside step loop, use window.__cvg.music for music state assertions. To force win quickly: set g.hp=0 on every ghost each frame and step 40000x with dt=0.1."
+}
