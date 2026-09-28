@@ -1,0 +1,142 @@
+{
+  "project_title": "Cat Versus Ghost - Game UI & Design Guidelines",
+  "version": "1.0.0",
+  "language": "Indonesian (Bahasa Indonesia)",
+  "game_concept": {
+    "genre": "Tower Defense / Lane Defense / Strategy Casual",
+    "theme": "Nighttime Garden, Glowing Moonlight, Cute Cats vs Spooky Ghosts",
+    "story": "Pada malam bulan purnama, para hantu keluar dari dunia roh untuk mencuri energi kehidupan dari rumah manusia. Sekelompok kucing penjaga malam bertugas menghentikan gelombang hantu di halaman rumah sebelum mencapai pintu.",
+    "grid_structure": "5 Lanes (Rows) x 9 Grid Columns",
+    "core_loop": "Kumpulkan energi Moonlight (+25) dari langit atau Solar Cat -> Panggil & tempatkan Kucing di jalur grid -> Bertahan dari gelombang Hantu -> Kalahkan Boss King Phantom Catnapper"
+  },
+  "typography": {
+    "font_family_primary": "Fredoka, Nunito, 'Titan One', sans-serif",
+    "font_family_heading": "'Titan One', Fredoka, 'Fredoka One', cursive, sans-serif",
+    "font_family_mono": "'JetBrains Mono', monospace",
+    "google_fonts_url": "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@600;800;900&family=Titan+One&display=swap",
+    "scale": {
+      "game_title": "text-4xl sm:text-5xl lg:text-6xl font-black tracking-wide drop-shadow-[0_4px_0_rgba(0,0,0,0.5)]",
+      "h1_hud": "text-2xl sm:text-3xl font-extrabold tracking-normal",
+      "h2_modal": "text-xl sm:text-2xl font-bold",
+      "card_cost": "text-sm sm:text-base font-black text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]",
+      "body": "text-sm sm:text-base font-medium leading-relaxed",
+      "badge": "text-xs font-bold uppercase tracking-wider"
+    }
+  },
+  "colors": {
+    "theme_mode": "Night Garden Primary with Day Shift Option",
+    "night_palette": {
+      "sky_top": "#0d0a26",
+      "sky_bottom": "#1e1b4b",
+      "lawn_dark": "#143823",
+      "lawn_light": "#1b4d30",
+      "grid_border": "#2c6e43",
+      "hud_bar_bg": "rgba(15, 23, 42, 0.85)",
+      "moonlight_glow": "#fef08a",
+      "moonlight_orb": "#fde047",
+      "boss_purple": "#7e22ce",
+      "accent_gold": "#fbbf24",
+      "accent_pink": "#f43f5e"
+    },
+    "day_palette": {
+      "sky_top": "#38bdf8",
+      "sky_bottom": "#bae6fd",
+      "lawn_dark": "#15803d",
+      "lawn_light": "#22c55e",
+      "grid_border": "#86efac"
+    },
+    "card_deck": {
+      "bg": "#2e1065",
+      "border": "#f59e0b",
+      "card_ready": "bg-gradient-to-b from-amber-100 to-amber-200 border-2 border-amber-500",
+      "card_disabled": "bg-slate-800/80 border-2 border-slate-600 opacity-60 grayscale"
+    },
+    "buttons": {
+      "primary_green": "bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-white border-b-4 border-emerald-700 active:border-b-0 active:translate-y-1 shadow-lg",
+      "secondary_purple": "bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white border-b-4 border-purple-900 active:border-b-0 active:translate-y-1 shadow-lg",
+      "action_amber": "bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-black border-b-4 border-amber-700 active:border-b-0 active:translate-y-1 shadow-lg",
+      "danger_red": "bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white border-b-4 border-rose-900 active:border-b-0 active:translate-y-1 shadow-lg"
+    }
+  },
+  "visual_enhancers": {
+    "hud_styling": "Chunky rounded pill headers with 3D drop shadows, solid borders, semi-transparent frosted backs (bg-slate-900/90 backdrop-blur-md border-2 border-amber-400/80 rounded-2xl p-2 sm:p-3)",
+    "lawn_grid_styling": "Alternating checkerboard tiles (lawn_dark / lawn_light) with inner highlight shadows, green glowing outline when tile is hover-selected for cat placement",
+    "moonlight_orb_effect": "Glowing pulse animation (animate-bounce + shadow-[0_0_20px_#fde047]), click pops floating '+25' text up and fades out",
+    "cat_mood_indicator": "Small floating mood bubble over cat head: 😊 Happy (+20% Dmg), 😡 Marah (Faster Atk), 😴 Mengantuk (Slow Atk). Give snack to improve mood!",
+    "boss_health_bar": "Top centered thick health bar with glowing purple frame, menacing boss portrait, and skill alert popups ('GHOST STORM!', 'POSSESSION!', 'DARK MOON!')",
+    "mobile_landscape": "Forces landscape orientation or shows playful full-screen modal: 'Putar Layar ke Landscape untuk Pengalaman Main Terbaik 🐱✨'"
+  },
+  "media_assets": {
+    "image_urls": {
+      "game_hero_bg": "https://images.unsplash.com/photo-1739513234768-d7c5985ff5f7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwxfHxjdXRlJTIwY2F0JTIwY2FydG9vbiUyMG5pZ2h0JTIwZ2FyZGVuJTIwbW9vbmxpZ2h0JTIwZ2FtZXxlbnwwfHx8fDE3OTA1OTY4ODJ8MA&ixlib=rb-4.1.0&q=85",
+      "moon_cat_banner": "https://images.unsplash.com/photo-1631657112164-c35e34978890?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwyfHxjdXRlJTIwY2F0JTIwY2FydG9vbiUyMG5pZ2h0JTIwZ2FyZGVuJTIwbW9vbmxpZ2h0JTIwZ2FtZXxlbnwwfHx8fDE3OTA1OTY4ODJ8MA&ixlib=rb-4.1.0&q=85"
+    },
+    "cats_catalogue": [
+      {"id": "solar", "name": "Solar Cat", "cost": 50, "role": "Penghasil Energi Moonlight", "icon": "☀️🐱"},
+      {"id": "claw", "name": "Claw Cat", "cost": 75, "role": "Melee Damage Tinggi", "icon": "🐾🐱"},
+      {"id": "laser", "name": "Laser Cat", "cost": 150, "role": "Sinar Menembus Jalur", "icon": "⚡🐱"},
+      {"id": "bubble", "name": "Bubble Cat", "cost": 100, "role": "Memperlambat Hantu", "icon": "🫧🐱"},
+      {"id": "ninja", "name": "Ninja Cat", "cost": 200, "role": "Shuriken Multi Target", "icon": "🥷🐱"},
+      {"id": "ghost_hunter", "name": "Ghost Hunter Cat", "cost": 300, "role": "Lihat Hantu Invisible & Anti-Boss", "icon": "👻🐱"}
+    ],
+    "ghosts_catalogue": [
+      {"id": "basic", "name": "Basic Ghost", "desc": "Hantu biasa yang berjalan pelan"},
+      {"id": "speed", "name": "Speed Ghost", "desc": "Hantu lari cepat menuju pintu"},
+      {"id": "shield", "name": "Shield Ghost", "desc": "Membawa perisai mengurangi damage depan"},
+      {"id": "possessed", "name": "Possessed Object", "desc": "Boneka/TV/Lampu hidup keras kepala"},
+      {"id": "invisible", "name": "Invisible Ghost", "desc": "Hanya terlihat oleh Ghost Hunter Cat"},
+      {"id": "boss", "name": "King Phantom Catnapper", "desc": "Boss utama dengan skill Ghost Storm, Possession, & Dark Moon"}
+    ]
+  },
+  "sound_effects_webaudio": {
+    "engine": "Web Audio API (Synthesized SFX without external asset lag)",
+    "effects": [
+      "orb_collect: sine wave sweep (800Hz to 1200Hz, fast decay)",
+      "cat_place: gentle thumping pop + meow sound synthesis",
+      "laser_shot: high frequency saw tooth zapping tone",
+      "ghost_hit: low impact noise burst",
+      "boss_skill: ominous rumble + deep synth frequency drop",
+      "victory_fanfare: cheerful arpeggio chord sequence"
+    ]
+  },
+  "data_testid_conventions": {
+    "hud": {
+      "moonlight_counter": "data-testid=\"hud-moonlight-counter\"",
+      "wave_progress": "data-testid=\"hud-wave-progress\"",
+      "pause_btn": "data-testid=\"hud-pause-button\"",
+      "day_night_toggle": "data-testid=\"hud-day-night-toggle\""
+    },
+    "cards": {
+      "cat_card": "data-testid=\"card-cat-${catId}\"",
+      "shovel_tool": "data-testid=\"tool-shovel\"",
+      "snack_tool": "data-testid=\"tool-snack\""
+    },
+    "board": {
+      "grid_tile": "data-testid=\"grid-tile-${laneIdx}-${colIdx}\"",
+      "moon_orb": "data-testid=\"moon-orb-${orbId}\"",
+      "cat_unit": "data-testid=\"cat-unit-${laneIdx}-${colIdx}\"",
+      "ghost_unit": "data-testid=\"ghost-unit-${ghostId}\""
+    },
+    "modals": {
+      "pause_modal": "data-testid=\"modal-pause\"",
+      "win_modal": "data-testid=\"modal-level-win\"",
+      "lose_modal": "data-testid=\"modal-level-lose\"",
+      "leaderboard_modal": "data-testid=\"modal-leaderboard\"",
+      "leaderboard_submit_btn": "data-testid=\"leaderboard-submit-button\""
+    },
+    "navigation": {
+      "start_game_btn": "data-testid=\"btn-start-story\"",
+      "endless_mode_btn": "data-testid=\"btn-start-endless\"",
+      "almanac_btn": "data-testid=\"btn-open-almanac\"",
+      "leaderboard_btn": "data-testid=\"btn-open-leaderboard\""
+    }
+  },
+  "instructions_to_main_agent": [
+    "Use JavaScript / JSX files (.js / .jsx) as configured in this repository.",
+    "Ensure all text is in friendly Indonesian language (e.g., 'Kumpulkan Energi Bulan', 'Tempatkan Kucing', 'Gelombang Hantu Mendekat!').",
+    "Provide high responsiveness on both Desktop and Mobile landscape (touch drag/click cat placement).",
+    "Persist story progress, unlocked cats, and high scores in localStorage and connect endless high scores to backend leaderboard.",
+    "Strictly follow the data-testid conventions for reliable automated tests.",
+    "Do NOT use transparent dropdowns or header overlays that compromise legibility over dark garden backgrounds."
+  ]
+}
