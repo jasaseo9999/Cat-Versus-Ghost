@@ -60,10 +60,10 @@ export default function MainMenu() {
           >
             {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
           </button>
-          <span className="rounded-full bg-slate-950/70 px-4 py-2 text-sm text-amber-200" data-testid="menu-best-score">
+          <span className="rounded-full border border-amber-400/40 bg-slate-950/90 px-4 py-2 text-sm text-amber-200 backdrop-blur-md" data-testid="menu-best-score">
             Rekor Endless: <b className="font-display">{p.bestEndless}</b>
           </span>
-          <span className="rounded-full bg-slate-950/70 px-4 py-2 text-sm text-emerald-200">
+          <span className="rounded-full border border-emerald-400/40 bg-slate-950/90 px-4 py-2 text-sm text-emerald-200 backdrop-blur-md">
             Level terbuka: <b className="font-display">{Math.min(p.unlocked, 6)}/6</b>
           </span>
         </div>

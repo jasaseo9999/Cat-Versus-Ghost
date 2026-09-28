@@ -1,0 +1,30 @@
+{
+  "summary": "Full backend + frontend E2E test of Cat Versus Ghost. Backend /api/scores POST & GET fully validated (9/9 pytest passed). Frontend: main menu, level select (lock/unlock via localStorage), Level 1 gameplay (card placement, moonlight cost, occupied tile no-op, cooldown data-ready, affordability data-affordable, snack, shovel, pause modal, speed button), lose flow, win flow (stars, next-level, unlocked persistence), boss level 6 (boss-health-bar, ghost-unit boss, POSSESSION banner), endless mode + leaderboard submission (rank returned, /leaderboard page shows rows), almanac tabs (cats/ghosts/collection/rules) with all sample entries, mobile portrait rotate-device-hint, mobile menu no horizontal overflow. All flows work end-to-end.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "MainMenu @ 390x844 portrait", "issues": ["Bottom footer text 'Rekor Endless' and 'Level terbuka: 1/6' has low contrast against the moonlit rooftop illustration - hard to read on mobile. Consider adding a subtle backdrop or increasing text contrast."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_scores_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Improve contrast of bottom stats row on mobile main menu (dark text over dark illustration)."
+  ],
+  "critical_code_review_comments": [
+    "server.py cleanly excludes Mongo _id from ScoreOut - good.",
+    "Pydantic validation on ScoreCreate (empty/long/negative) properly returns 422.",
+    "Debug hook window.__cvg exposed only when ?debug=1 - correct."
+  ],
+  "updated_files": ["/app/backend/tests/test_scores_api.py"],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "~98% (all critical flows pass)"},
+  "test_credentials": "No auth. localStorage cvg_progress_v1 for unlock. Use ?debug=1 for window.__cvg hook.",
+  "seed_data_creation": "Leaderboard entries prefixed TEST_ (TEST_alpha, TEST_high, TEST_low, TEST_neg, TEST_e2e) added by backend tests + one endless submit.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/test_scores_api.py (pytest, 9 tests). For frontend, always set localStorage cvg_progress_v1 BEFORE navigating to /play/6?debug=1 (level select redirects if locked). Use `for(let i=0;i<8000 && window.__cvg.state().status==='playing';i++) window.__cvg.step(window.__cvg.state(),0.05)` to fast-forward. To force win in boss level, set state.moonlight=99999 and state.lives=999 each iteration then place laser cats across all rows col 1-3."
+}
