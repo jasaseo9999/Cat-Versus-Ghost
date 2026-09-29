@@ -1,5 +1,7 @@
 import { Heart, Pause, Sun, Moon, Volume2, VolumeX, FastForward, Skull, Crown, Ghost } from "lucide-react";
 import { START_LIVES, GHOSTS, levelLabel } from "../../game/data";
+
+const HEARTS = Array.from({ length: START_LIVES }, (_, i) => i + 1);
 import { getBoss, waveProgress } from "../../game/engine";
 
 const WaveBar = ({ s }) => {
@@ -21,8 +23,8 @@ const WaveBar = ({ s }) => {
       {!endless && (
         <div className="wave-track">
           <div className="wave-fill" style={{ width: `${pct * 100}%` }} />
-          {s.waveMarks.slice(1).map((m, i) => (
-            <span key={i} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${m.at * 100}%` }}>
+          {s.waveMarks.slice(1).map((m) => (
+            <span key={m.id} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${m.at * 100}%` }}>
               {m.boss ? <Crown size={18} className="text-fuchsia-300" fill="#a855f7" /> : m.big ? <Skull size={16} className="text-rose-300" /> : <span className="block h-3 w-1 rounded bg-white/60" />}
             </span>
           ))}
@@ -61,8 +63,8 @@ export const Hud = ({ s, onPause, speed, onSpeed, muted, onMute }) => {
           <span className="font-display text-sm">{dark ? "Dark Moon" : night ? "Malam" : "Siang"}</span>
         </div>
         <div className="hud-pill flex items-center gap-1 px-3 py-2" data-testid="hud-lives" data-lives={s.lives}>
-          {Array.from({ length: START_LIVES }).map((_, i) => (
-            <Heart key={i} size={20} className={i < s.lives ? "text-rose-500" : "text-slate-600"} fill={i < s.lives ? "#f43f5e" : "transparent"} />
+          {HEARTS.map((n) => (
+            <Heart key={`heart-${n}`} size={20} className={n <= s.lives ? "text-rose-500" : "text-slate-600"} fill={n <= s.lives ? "#f43f5e" : "transparent"} />
           ))}
         </div>
       </div>

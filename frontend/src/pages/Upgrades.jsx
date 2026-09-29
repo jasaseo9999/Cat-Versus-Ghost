@@ -8,6 +8,7 @@ import { play } from "../game/audio";
 import { GameButton } from "../components/game/GameButton";
 
 const pct = (v) => `+${Math.round(v * 100)}%`;
+const PIPS = Array.from({ length: UPG_MAX }, (_, i) => i + 1);
 
 const bonusText = (id, lv) =>
   id === "solar" ? `${pct(UPG_PROD * lv)} produksi · ${pct(UPG_HP * lv)} HP` : `${pct(UPG_DMG * lv)} damage · ${pct(UPG_HP * lv)} HP`;
@@ -23,7 +24,7 @@ const UpgradeCard = ({ id, lv, locked, canAfford, onUpgrade }) => {
           <div className="font-display text-lg leading-tight">{C.name}</div>
           <div className="text-xs font-bold uppercase tracking-wider" style={{ color: C.color }}>{C.role}</div>
           <div className="mt-2 flex gap-2" data-testid={`upgrade-level-${id}`} data-level={lv}>
-            {Array.from({ length: UPG_MAX }).map((_, i) => <span key={i} className={`upg-pip ${i < lv ? "on" : ""}`} />)}
+            {PIPS.map((n) => <span key={`pip-${n}`} className={`upg-pip ${n <= lv ? "on" : ""}`} />)}
           </div>
         </div>
       </div>

@@ -7,6 +7,23 @@ export const feetY = (row) => BOARD.y + (row + 1) * BOARD.rh - 8;
 export const centerY = (y) => BOARD.y + (y + 0.5) * BOARD.rh;
 
 const MOOD_LABEL = { happy: "^^", angry: "!!", sleepy: "Zz", possessed: "??" };
+const EVO_STARS = [1, 2];
+const cls = (...xs) => xs.filter(Boolean).join(" ");
+
+const catClasses = (c, t, mood) => cls(
+  "unit cat-unit", `cm-${mood}`, `evo-${c.evo}`,
+  t < c.hitUntil && "is-hit", t < c.attackUntil && "is-attack", t < c.stunUntil && "is-stunned", t - c.placedAt < 0.5 && "placed",
+);
+
+const ghostClasses = (g, t, invisible) => cls(
+  "unit ghost-unit",
+  t < g.hitUntil && "is-hit", t < g.slowUntil && "is-slowed", g.eating && "is-eating", t < g.leapUntil && "is-leap",
+  g.enraged && "is-enraged", t < g.stunUntil && "is-stunned", t < (g.castUntil || 0) && "is-casting",
+  t - g.born < 0.8 && "enter", invisible && (g.revealed ? "revealed-ghost" : "hidden-ghost"), g.hopping && "is-hop",
+);
+
+const ghostSprite = (g, G) => (g.type === "shield" && g.shield <= 0 ? A("ghost_basic") : G.img);
+const showGhostHp = (g, seen) => g.type !== "boss" && seen && (g.hp < g.maxHp || g.shield < g.maxShield);
 
 const HpBar = ({ pct, kind, shieldPct = 0 }) => (
   <div className={`hpbar ${kind}`}>
@@ -18,16 +35,12 @@ const HpBar = ({ pct, kind, shieldPct = 0 }) => (
 export const CatUnit = ({ c, t }) => {
   const mood = moodOf(c, t);
   const stunned = t < c.stunUntil;
-  const cls = [
-    "unit cat-unit", `cm-${mood}`, `evo-${c.evo}`,
-    t < c.hitUntil && "is-hit", t < c.attackUntil && "is-attack", stunned && "is-stunned", t - c.placedAt < 0.5 && "placed",
-  ].filter(Boolean).join(" ");
   return (
     <div
       data-testid={`cat-unit-${c.row}-${c.col}`}
       data-mood={mood}
       data-evo={c.evo}
-      className={cls}
+      className={catClasses(c, t, mood)}
       style={{ left: px(c.col + 0.5), top: feetY(c.row), zIndex: 20 + c.row * 10 }}
     >
       <div className="unit-shadow" />
@@ -38,7 +51,7 @@ export const CatUnit = ({ c, t }) => {
       )}
       {c.evo > 0 && (
         <div className="evo-badge">
-          {Array.from({ length: c.evo }).map((_, i) => <Star key={i} size={9} fill="#fde047" color="#fde047" />)}
+          {EVO_STARS.slice(0, c.evo).map((n) => <Star key={`evo-${n}`} size={9} fill="#fde047" color="#fde047" />)}
         </div>
       )}
       {stunned && <Zap size={18} className="stun-icon" fill="#fde047" />}
@@ -48,27 +61,20 @@ export const CatUnit = ({ c, t }) => {
 
 export const GhostUnit = ({ g, t }) => {
   const G = GHOSTS[g.type];
-  const invisible = G.invisible;
-  const size = G.size;
-  const img = g.type === "shield" && g.shield <= 0 ? A("ghost_basic") : G.img;
-  const cls = [
-    "unit ghost-unit",
-    t < g.hitUntil && "is-hit", t < g.slowUntil && "is-slowed", g.eating && "is-eating", t < g.leapUntil && "is-leap",
-    g.enraged && "is-enraged", t < g.stunUntil && "is-stunned", t < (g.castUntil || 0) && "is-casting",
-    t - g.born < 0.8 && "enter", invisible && (g.revealed ? "revealed-ghost" : "hidden-ghost"), g.hopping && "is-hop",
-  ].filter(Boolean).join(" ");
+  const { invisible, size } = G;
+  const seen = !invisible || g.revealed;
   const row = g.type === "boss" ? 3 : g.row;
   return (
     <div
       data-testid={`ghost-unit-${g.id}`}
       data-ghost-type={g.type}
-      className={cls}
+      className={ghostClasses(g, t, invisible)}
       style={{ left: px(g.x), top: feetY(row) + (g.type === "boss" ? 6 : 0), width: size, height: size, zIndex: 25 + row * 10 }}
     >
       {!invisible && <div className="unit-shadow" />}
-      <img src={img} alt={G.name} className="sprite" style={{ width: size, height: size, scale: G.flip ? "-1 1" : undefined }} draggable={false} />
-      {g.marked && (!invisible || g.revealed) && <Search size={18} className="mark-icon" strokeWidth={3} data-testid={`ghost-marked-${g.id}`} />}
-      {g.type !== "boss" && (g.hp < g.maxHp || g.shield < g.maxShield) && (!invisible || g.revealed) && (
+      <img src={ghostSprite(g, G)} alt={G.name} className="sprite" style={{ width: size, height: size, scale: G.flip ? "-1 1" : undefined }} draggable={false} />
+      {g.marked && seen && <Search size={18} className="mark-icon" strokeWidth={3} data-testid={`ghost-marked-${g.id}`} />}
+      {showGhostHp(g, seen) && (
         <HpBar pct={g.hp / g.maxHp} kind="ghost" shieldPct={g.maxShield ? g.shield / g.maxShield : 0} />
       )}
     </div>

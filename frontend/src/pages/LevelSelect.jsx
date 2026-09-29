@@ -4,6 +4,8 @@ import { A, LEVELS, LOCATIONS, CATS, GHOSTS, levelLabel } from "../game/data";
 import { loadProgress } from "../game/storage";
 import { play } from "../game/audio";
 
+const STAR_SLOTS = [1, 2, 3];
+
 const LevelNode = ({ level, unlocked, stars, onPlay }) => (
   <button
     type="button"
@@ -19,8 +21,8 @@ const LevelNode = ({ level, unlocked, stars, onPlay }) => (
     </div>
     <div className="font-display text-sm leading-tight text-white">{level.name}</div>
     <div className="flex gap-0.5">
-      {[0, 1, 2].map((i) => (
-        <Star key={i} size={14} className={i < stars ? "text-amber-300" : "text-slate-600"} fill={i < stars ? "#fcd34d" : "transparent"} />
+      {STAR_SLOTS.map((n) => (
+        <Star key={`star-${n}`} size={14} className={n <= stars ? "text-amber-300" : "text-slate-600"} fill={n <= stars ? "#fcd34d" : "transparent"} />
       ))}
     </div>
     {unlocked && (

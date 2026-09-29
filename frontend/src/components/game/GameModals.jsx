@@ -85,39 +85,48 @@ const WIN_TEXT = {
   12: "Kuburan Tua aman! Raja hantu melarikan diri lagi... lokasi berikutnya segera hadir.",
 };
 
-export const WinModal = ({ level, stars, kills, newCat, onNext, onRetry, onLevels }) => {
-  const hasNext = LEVELS.some((l) => l.num === level.num + 1);
-  return (
-    <GameModal testid="modal-level-win">
-      <div className="text-center">
-        <div className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Level {levelLabel(level)} selesai</div>
-        <h2 className="font-display text-4xl text-amber-300">Halaman Aman!</h2>
-        <div className="my-4 flex justify-center gap-2" data-testid="win-stars" data-stars={stars}>
-          {[0, 1, 2].map((i) => (
-            <Star key={i} size={54} className={i < stars ? "text-amber-300" : "text-slate-600"} fill={i < stars ? "#fcd34d" : "transparent"} style={{ animation: `starPop 0.5s ${0.2 + i * 0.15}s both` }} />
-          ))}
-        </div>
-        <p className="text-slate-300">{kills} hantu diusir. {WIN_TEXT[level.num] || "Para kucing penjaga siap untuk malam berikutnya."}</p>
-        <p className="mt-1 text-xs text-amber-200/80">Bintang bisa dipakai di Bengkel Kucing untuk upgrade permanen.</p>
-      </div>
-      {newCat && (
-        <div className="mt-4 flex items-center gap-4 rounded-2xl border-2 border-amber-400 bg-amber-500/10 p-3" data-testid="win-new-cat">
-          <img src={CATS[newCat].img} alt={CATS[newCat].name} className="card-sprite-bob h-20 w-20 object-contain" />
-          <div>
-            <div className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-amber-300"><Sparkles size={14} /> Kucing Koleksi Terbuka!</div>
-            <div className="font-display text-xl">{CATS[newCat].name}</div>
-            <p className="text-sm text-slate-300">{CATS[newCat].role} — bisa dipilih di Pasukan mulai sekarang.</p>
-          </div>
-        </div>
-      )}
-      <div className="mt-6 flex gap-3">
-        {hasNext && <GameButton variant="green" className="flex-1" onClick={onNext} data-testid="btn-next-level"><Play size={20} fill="#fff" /> Level Berikutnya</GameButton>}
-        <GameButton variant="amber" className={hasNext ? "" : "flex-1"} onClick={onRetry} data-testid="btn-retry"><RotateCcw size={20} /> {hasNext ? "" : "Ulangi"}</GameButton>
-        <GameButton variant="purple" className={hasNext ? "" : "flex-1"} onClick={onLevels} data-testid="btn-back-levels"><Home size={20} /> {hasNext ? "" : "Pilih Level"}</GameButton>
-      </div>
-    </GameModal>
-  );
-};
+const STAR_SLOTS = [1, 2, 3];
+
+const WinStars = ({ stars }) => (
+  <div className="my-4 flex justify-center gap-2" data-testid="win-stars" data-stars={stars}>
+    {STAR_SLOTS.map((n) => (
+      <Star key={`win-star-${n}`} size={54} className={n <= stars ? "text-amber-300" : "text-slate-600"} fill={n <= stars ? "#fcd34d" : "transparent"} style={{ animation: `starPop 0.5s ${0.05 + n * 0.15}s both` }} />
+    ))}
+  </div>
+);
+
+const NewCatBanner = ({ id }) => (
+  <div className="mt-4 flex items-center gap-4 rounded-2xl border-2 border-amber-400 bg-amber-500/10 p-3" data-testid="win-new-cat">
+    <img src={CATS[id].img} alt={CATS[id].name} className="card-sprite-bob h-20 w-20 object-contain" />
+    <div>
+      <div className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-amber-300"><Sparkles size={14} /> Kucing Koleksi Terbuka!</div>
+      <div className="font-display text-xl">{CATS[id].name}</div>
+      <p className="text-sm text-slate-300">{CATS[id].role} — bisa dipilih di Pasukan mulai sekarang.</p>
+    </div>
+  </div>
+);
+
+const WinActions = ({ hasNext, onNext, onRetry, onLevels }) => (
+  <div className="mt-6 flex gap-3">
+    {hasNext && <GameButton variant="green" className="flex-1" onClick={onNext} data-testid="btn-next-level"><Play size={20} fill="#fff" /> Level Berikutnya</GameButton>}
+    <GameButton variant="amber" className={hasNext ? "" : "flex-1"} onClick={onRetry} data-testid="btn-retry"><RotateCcw size={20} /> {hasNext ? "" : "Ulangi"}</GameButton>
+    <GameButton variant="purple" className={hasNext ? "" : "flex-1"} onClick={onLevels} data-testid="btn-back-levels"><Home size={20} /> {hasNext ? "" : "Pilih Level"}</GameButton>
+  </div>
+);
+
+export const WinModal = ({ level, stars, kills, newCat, onNext, onRetry, onLevels }) => (
+  <GameModal testid="modal-level-win">
+    <div className="text-center">
+      <div className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Level {levelLabel(level)} selesai</div>
+      <h2 className="font-display text-4xl text-amber-300">Halaman Aman!</h2>
+      <WinStars stars={stars} />
+      <p className="text-slate-300">{kills} hantu diusir. {WIN_TEXT[level.num] || "Para kucing penjaga siap untuk malam berikutnya."}</p>
+      <p className="mt-1 text-xs text-amber-200/80">Bintang bisa dipakai di Bengkel Kucing untuk upgrade permanen.</p>
+    </div>
+    {newCat && <NewCatBanner id={newCat} />}
+    <WinActions hasNext={LEVELS.some((l) => l.num === level.num + 1)} onNext={onNext} onRetry={onRetry} onLevels={onLevels} />
+  </GameModal>
+);
 
 export const LoseModal = ({ onRetry, onLevels }) => (
   <GameModal testid="modal-level-lose">
@@ -132,17 +141,20 @@ export const LoseModal = ({ onRetry, onLevels }) => (
   </GameModal>
 );
 
-export const EndlessOverModal = ({ result, onRetry, onMenu, onBoard }) => {
+const cleanName = (name) => name.trim().slice(0, 16);
+
+const ScoreSubmit = ({ result }) => {
   const [name, setName] = useState(loadProgress().name || "");
   const [sending, setSending] = useState(false);
   const [rank, setRank] = useState(null);
+
   const submit = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!cleanName(name)) return;
     setSending(true);
     try {
-      const res = await submitScore({ name: name.trim().slice(0, 16), score: result.score, wave: result.wave, kills: result.kills });
-      saveProgress({ name: name.trim().slice(0, 16) });
+      const res = await submitScore({ name: cleanName(name), score: result.score, wave: result.wave, kills: result.kills });
+      saveProgress({ name: cleanName(name) });
       setRank(res.rank);
       toast.success(`Skor terkirim! Peringkat #${res.rank}`);
     } catch {
@@ -151,37 +163,43 @@ export const EndlessOverModal = ({ result, onRetry, onMenu, onBoard }) => {
       setSending(false);
     }
   };
+
+  if (rank) {
+    return (
+      <div className="mt-5 flex items-center justify-center gap-2 rounded-2xl bg-emerald-900/50 p-3 font-display text-xl text-emerald-200" data-testid="leaderboard-rank">
+        <Trophy size={24} /> Peringkat Global #{rank}
+      </div>
+    );
+  }
   return (
-    <GameModal testid="modal-leaderboard">
-      <div className="text-center">
-        <div className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-300">Endless Night berakhir</div>
-        <h2 className="font-display text-5xl text-amber-300" data-testid="endless-final-score">{result.score}</h2>
-        <p className="mt-1 text-slate-300">Gelombang {result.wave} · {result.kills} hantu · Rekor: {result.best}</p>
-      </div>
-      {rank ? (
-        <div className="mt-5 flex items-center justify-center gap-2 rounded-2xl bg-emerald-900/50 p-3 font-display text-xl text-emerald-200" data-testid="leaderboard-rank">
-          <Trophy size={24} /> Peringkat Global #{rank}
-        </div>
-      ) : (
-        <form onSubmit={submit} className="mt-5 flex gap-2">
-          <input
-            data-testid="leaderboard-name-input"
-            value={name}
-            maxLength={16}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nama penjaga..."
-            className="flex-1 rounded-xl border-2 border-amber-400/60 bg-slate-950/70 px-4 py-3 text-lg text-white outline-none placeholder:text-slate-500 focus:border-amber-300"
-          />
-          <GameButton variant="amber" type="submit" disabled={sending || !name.trim()} data-testid="leaderboard-submit-button">
-            {sending ? <Loader2 size={20} className="animate-spin" /> : <Trophy size={20} />} Kirim
-          </GameButton>
-        </form>
-      )}
-      <div className="mt-5 flex gap-3">
-        <GameButton variant="green" className="flex-1" onClick={onRetry} data-testid="btn-retry"><RotateCcw size={20} /> Main Lagi</GameButton>
-        <GameButton variant="blue" onClick={onBoard} data-testid="btn-view-leaderboard"><ListOrdered size={20} /></GameButton>
-        <GameButton variant="purple" onClick={onMenu} data-testid="btn-back-menu"><Home size={20} /></GameButton>
-      </div>
-    </GameModal>
+    <form onSubmit={submit} className="mt-5 flex gap-2">
+      <input
+        data-testid="leaderboard-name-input"
+        value={name}
+        maxLength={16}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Nama penjaga..."
+        className="flex-1 rounded-xl border-2 border-amber-400/60 bg-slate-950/70 px-4 py-3 text-lg text-white outline-none placeholder:text-slate-500 focus:border-amber-300"
+      />
+      <GameButton variant="amber" type="submit" disabled={sending || !cleanName(name)} data-testid="leaderboard-submit-button">
+        {sending ? <Loader2 size={20} className="animate-spin" /> : <Trophy size={20} />} Kirim
+      </GameButton>
+    </form>
   );
 };
+
+export const EndlessOverModal = ({ result, onRetry, onMenu, onBoard }) => (
+  <GameModal testid="modal-leaderboard">
+    <div className="text-center">
+      <div className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-300">Endless Night berakhir</div>
+      <h2 className="font-display text-5xl text-amber-300" data-testid="endless-final-score">{result.score}</h2>
+      <p className="mt-1 text-slate-300">Gelombang {result.wave} · {result.kills} hantu · Rekor: {result.best}</p>
+    </div>
+    <ScoreSubmit result={result} />
+    <div className="mt-5 flex gap-3">
+      <GameButton variant="green" className="flex-1" onClick={onRetry} data-testid="btn-retry"><RotateCcw size={20} /> Main Lagi</GameButton>
+      <GameButton variant="blue" onClick={onBoard} data-testid="btn-view-leaderboard"><ListOrdered size={20} /></GameButton>
+      <GameButton variant="purple" onClick={onMenu} data-testid="btn-back-menu"><Home size={20} /></GameButton>
+    </div>
+  </GameModal>
+);

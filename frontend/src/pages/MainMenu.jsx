@@ -7,8 +7,9 @@ import { play, unlockAudio, isMuted, setMuted } from "../game/audio";
 import { GameButton } from "../components/game/GameButton";
 
 const ORBS = [
-  { l: "8%", t: "70%", s: 18, d: "0s" }, { l: "30%", t: "20%", s: 12, d: "2s" }, { l: "46%", t: "80%", s: 22, d: "4s" },
-  { l: "62%", t: "12%", s: 14, d: "1s" }, { l: "80%", t: "60%", s: 16, d: "3s" }, { l: "90%", t: "25%", s: 10, d: "5s" },
+  { id: "orb-a", l: "8%", t: "70%", s: 18, d: "0s" }, { id: "orb-b", l: "30%", t: "20%", s: 12, d: "2s" },
+  { id: "orb-c", l: "46%", t: "80%", s: 22, d: "4s" }, { id: "orb-d", l: "62%", t: "12%", s: 14, d: "1s" },
+  { id: "orb-e", l: "80%", t: "60%", s: 16, d: "3s" }, { id: "orb-f", l: "90%", t: "25%", s: 10, d: "5s" },
 ];
 
 export default function MainMenu() {
@@ -32,8 +33,8 @@ export default function MainMenu() {
   const stars = starBalance(p);
   return (
     <div className="menu-bg grain" style={{ backgroundImage: `url(${A("bg_menu")})` }} data-testid="main-menu">
-      {ORBS.map((o, i) => (
-        <span key={i} className="float-orb" style={{ left: o.l, top: o.t, width: o.s, height: o.s, animationDelay: o.d }} />
+      {ORBS.map((o) => (
+        <span key={o.id} className="float-orb" style={{ left: o.l, top: o.t, width: o.s, height: o.s, animationDelay: o.d }} />
       ))}
       <div className="relative z-10 flex h-full flex-col justify-center gap-6 overflow-y-auto px-6 py-6 sm:px-12 lg:px-20">
         <img src={A("game_logo")} alt="Cat Versus Ghost" className="logo-bob reveal-up max-h-[34vh] w-[240px] object-contain object-left sm:w-[300px] lg:w-[380px]" data-testid="game-logo" />
